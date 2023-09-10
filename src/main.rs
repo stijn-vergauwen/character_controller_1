@@ -2,6 +2,7 @@ use std::f32::consts::PI;
 
 use bevy::{prelude::*, window};
 use bevy_rapier3d::prelude::*;
+use character_controller_1::character::spawner::spawn_default_character_with_user_input;
 
 fn main() {
     App::new()
@@ -10,12 +11,12 @@ fn main() {
             RapierPhysicsPlugin::<NoUserData>::default(),
             RapierDebugRenderPlugin::default(),
         ))
-        .add_systems(Startup, (spawn_camera, spawn_objects))
+        .add_systems(Startup, (spawn_objects, spawn_test_character))
         .add_systems(Update, window::close_on_esc)
         .run();
 }
 
-fn spawn_camera(mut commands: Commands) {
+fn _spawn_camera(mut commands: Commands) {
     commands.spawn((
         Name::from("Scene camera"),
         Camera3dBundle {
@@ -79,4 +80,8 @@ fn spawn_objects(
             ..default()
         },
     ));
+}
+
+fn spawn_test_character(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<StandardMaterial>>) {
+    spawn_default_character_with_user_input(&mut commands, &mut meshes, &mut materials);
 }

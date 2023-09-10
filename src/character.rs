@@ -2,7 +2,7 @@ mod interaction;
 mod jump;
 mod movement;
 mod rotation;
-mod spawner;
+pub mod spawner;
 
 use bevy::prelude::*;
 
@@ -24,15 +24,17 @@ impl Plugin for CharacterPlugin {
 // TODO: make component for user input, if added set character input using user input, otherwise leave it (replaces bool)
 // TODO: make separate component for all character configuration, like movement strengths
 
-// TODO: move is_grounded to it's own general component that checks if things are grounded
+// TODO: move on_ground to it's own general component that checks if things are grounded
 
 // TODO: make character camera it's own component, to allow no cam or third person cam.
+
+// TODO: store Option<camera id> on character head component, I think this is a good way to update movement without transform hierarchy
 
 #[derive(Component)]
 pub struct Character {
     is_active: bool,
     is_running: bool,
-    is_grounded: bool,
+    on_ground: bool,
     movement_input: Vec3,
     rotation_input: Vec3,
     walk_strength: f32,
@@ -46,7 +48,7 @@ impl Character {
         Self {
             is_active: false,
             is_running: false,
-            is_grounded: false,
+            on_ground: false,
             movement_input: Vec3::ZERO,
             rotation_input: Vec3::ZERO,
             walk_strength,
