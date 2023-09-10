@@ -11,6 +11,7 @@ use bevy::prelude::*;
 
     - Data that affects behaviour (like input keybinds or move speed) should be stored in the components, not in constants
     - Every entity spawned should have a Name component
+    - The plugin should panic nowhere, and not use the get_single functions.
 */
 
 pub struct CharacterPlugin;
@@ -21,18 +22,18 @@ impl Plugin for CharacterPlugin {
     }
 }
 
-// TODO: make component for user input, if added set character input using user input, otherwise leave it (replaces bool)
 // TODO: make separate component for all character configuration, like movement strengths
 
 // TODO: move on_ground to it's own general component that checks if things are grounded
 
 // TODO: make character camera it's own component, to allow no cam or third person cam.
-
 // TODO: store Option<camera id> on character head component, I think this is a good way to update movement without transform hierarchy
+
+// TODO: when standing on an object, use it's normal direction to align the characters movement forces
 
 #[derive(Component)]
 pub struct Character {
-    is_active: bool,
+    pub is_active: bool,
     is_running: bool,
     on_ground: bool,
     movement_input: Vec3,
@@ -58,10 +59,11 @@ impl Character {
         }
     }
 
-    /// Sets `is_active` to true.
-    fn activate(&mut self) {
-        self.is_active = true;
+    pub fn set_movement_input(&mut self, value: Vec3) {
+        self.movement_input = value;
     }
 
-
+    pub fn set_rotation_input(&mut self, value: Vec3) {
+        self.rotation_input = value;
+    }
 }
