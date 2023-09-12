@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-use super::{Character, CharacterHead};
+use super::{Character, CharacterHead, config::CharacterConfig};
 
 pub struct CharacterSpawnSettings {
     pub color: Color,
@@ -82,6 +82,7 @@ pub fn spawn_character(
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
     character: Character,
+    character_config: CharacterConfig,
     spawn_settings: &CharacterSpawnSettings,
 ) -> Entity {
     let character_material = build_character_material(materials, spawn_settings);
@@ -91,6 +92,7 @@ pub fn spawn_character(
             Name::from(spawn_settings.root_name.clone()),
             build_rigid_body(spawn_settings.drag_factor),
             character,
+            character_config,
             TransformBundle::from_transform(Transform::from_translation(
                 spawn_settings.spawn_position,
             )),

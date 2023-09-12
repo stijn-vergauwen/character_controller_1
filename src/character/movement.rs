@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-use super::Character;
+use super::{Character, config::CharacterConfig};
 
 pub struct CharacterMovementPlugin;
 
@@ -11,11 +11,11 @@ impl Plugin for CharacterMovementPlugin {
     }
 }
 
-fn move_character(mut characters: Query<(&mut ExternalForce, &Character, &Transform)>) {
-    for (mut force, character, transform) in characters.iter_mut() {
+fn move_character(mut characters: Query<(&mut ExternalForce, &Character, &CharacterConfig, &Transform)>) {
+    for (mut force, character, config, transform) in characters.iter_mut() {
         // TODO: rotate movement direction by the normal of the current ground object
         let direction = transform.rotation * character.movement_input;
 
-        force.force = direction * character.get_movement_strength();
+        force.force = direction * config.get_movement_strength(character);
     }
 }

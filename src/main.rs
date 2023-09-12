@@ -4,6 +4,7 @@ use bevy::{prelude::*, window};
 use bevy_rapier3d::prelude::*;
 use character_controller_1::{
     character::{
+        config::CharacterConfig,
         spawner::{spawn_character, CharacterSpawnSettings},
         Character, CharacterPlugin,
     },
@@ -19,15 +20,12 @@ fn main() {
             CharacterPlugin,
             PlayerMovementInputPlugin,
         ))
-        .add_systems(
-            Startup,
-            (_spawn_camera, spawn_objects, spawn_test_character),
-        )
+        .add_systems(Startup, (spawn_objects, spawn_test_character))
         .add_systems(Update, window::close_on_esc)
         .run();
 }
 
-fn _spawn_camera(mut commands: Commands) {
+fn _spawn_test_camera(mut commands: Commands) {
     commands.spawn((
         Name::from("Scene camera"),
         Camera3dBundle {
@@ -109,13 +107,14 @@ fn spawn_test_character(
     };
 
     let mut character = Character::default();
-    character.is_active = true;
+    character.activate();
 
     let character_id = spawn_character(
         &mut commands,
         &mut meshes,
         &mut materials,
         character,
+        CharacterConfig::default(),
         &spawn_settings,
     );
 
