@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-use super::Character;
+use super::{Character, CharacterHead};
 
 pub struct CharacterSpawnSettings {
     pub color: Color,
@@ -170,7 +170,7 @@ fn build_character_head(
     meshes: &mut ResMut<Assets<Mesh>>,
     material_handle: Handle<StandardMaterial>,
     spawn_settings: &CharacterSpawnSettings,
-) -> (PbrBundle, Collider) {
+) -> (PbrBundle, Collider, CharacterHead) {
     let head_size = spawn_settings.head_height();
     (
         PbrBundle {
@@ -184,6 +184,7 @@ fn build_character_head(
             ..default()
         },
         Collider::cuboid(head_size / 2.0, head_size / 2.0, head_size / 2.0),
+        CharacterHead,
     )
 }
 

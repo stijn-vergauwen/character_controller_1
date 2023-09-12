@@ -6,7 +6,7 @@ pub mod spawner;
 
 use bevy::prelude::*;
 
-use self::movement::CharacterMovementPlugin;
+use self::{movement::CharacterMovementPlugin, rotation::CharacterRotationPlugin};
 
 /*
     Standards to hold myself to in this project:
@@ -20,7 +20,7 @@ pub struct CharacterPlugin;
 
 impl Plugin for CharacterPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(CharacterMovementPlugin);
+        app.add_plugins((CharacterMovementPlugin, CharacterRotationPlugin));
     }
 }
 
@@ -68,7 +68,7 @@ impl Character {
 
     /// Sets the rotation input of this [`Character`] to the given value, or `Vec3::ZERO` if this character is inactive.
     pub fn set_rotation_input(&mut self, value: Vec3) {
-        self.movement_input = if self.is_active { value } else { Vec3::ZERO };
+        self.rotation_input = if self.is_active { value } else { Vec3::ZERO };
     }
 
     pub fn get_movement_strength(&self) -> f32 {
@@ -77,8 +77,6 @@ impl Character {
             true => self.run_strength,
         }
     }
-
-    
 }
 
 impl Default for Character {
@@ -97,3 +95,6 @@ impl Default for Character {
         }
     }
 }
+
+#[derive(Component)]
+pub struct CharacterHead;
