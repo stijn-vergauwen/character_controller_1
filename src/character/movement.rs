@@ -7,13 +7,12 @@ pub struct CharacterMovementPlugin;
 
 impl Plugin for CharacterMovementPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, move_characters);
+        app.add_systems(Update, move_character);
     }
 }
 
-fn move_characters(mut characters: Query<(&mut ExternalForce, &Character, &Transform)>) {
+fn move_character(mut characters: Query<(&mut ExternalForce, &Character, &Transform)>) {
     for (mut force, character, transform) in characters.iter_mut() {
-        println!("{character:#?}");
         // TODO: rotate movement direction by the normal of the current ground object
         let direction = transform.rotation * character.movement_input;
 
