@@ -17,6 +17,9 @@ pub struct CharacterSpawnSettings {
 
     /// The value that the `Name` component of the character root will have
     root_name: String,
+
+    /// The value that the rigidbody's `linear_damping` will have
+    drag_factor: f32,
 }
 
 impl CharacterSpawnSettings {
@@ -65,6 +68,7 @@ impl Default for CharacterSpawnSettings {
             size: Vec2::new(0.8, 2.0),
             head_percentage_of_height: 20.0,
             root_name: String::from("Default character root"),
+            drag_factor: 1.0,
         }
     }
 }
@@ -84,8 +88,7 @@ pub fn spawn_character(
     commands
         .spawn((
             Name::from(spawn_settings.root_name.clone()),
-            // TODO: add variable for damping, likely in character data
-            build_rigid_body(1.0),
+            build_rigid_body(spawn_settings.drag_factor),
             character,
             TransformBundle::from_transform(Transform::from_translation(
                 spawn_settings.spawn_position,
