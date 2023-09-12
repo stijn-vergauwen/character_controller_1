@@ -64,10 +64,7 @@ fn update_character_movement_input(
     input: Res<Input<KeyCode>>,
 ) {
     for (movement, mut character) in character_query.iter_mut() {
-        let direction = match character.is_active {
-            true => walk_direction_from_input(&movement.keybinds, &input),
-            false => Vec3::ZERO,
-        };
+        let direction = walk_direction_from_input(&movement.keybinds, &input);
 
         character.set_movement_input(direction);
     }

@@ -61,20 +61,24 @@ impl Character {
         }
     }
 
+    /// Sets the movement input of this [`Character`] to the given value, or `Vec3::ZERO` if this character is inactive.
     pub fn set_movement_input(&mut self, value: Vec3) {
-        self.movement_input = value;
+        self.movement_input = if self.is_active { value } else { Vec3::ZERO };
     }
 
+    /// Sets the rotation input of this [`Character`] to the given value, or `Vec3::ZERO` if this character is inactive.
     pub fn set_rotation_input(&mut self, value: Vec3) {
-        self.rotation_input = value;
+        self.movement_input = if self.is_active { value } else { Vec3::ZERO };
     }
 
     pub fn get_movement_strength(&self) -> f32 {
-        match self.is_running {
+        match self.is_active && self.is_running {
             false => self.walk_strength,
             true => self.run_strength,
         }
     }
+
+    
 }
 
 impl Default for Character {

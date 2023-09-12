@@ -108,11 +108,14 @@ fn spawn_test_character(
         ..default()
     };
 
+    let mut character = Character::default();
+    character.is_active = true;
+
     let character_id = spawn_character(
         &mut commands,
         &mut meshes,
         &mut materials,
-        Character::default(),
+        character,
         &spawn_settings,
     );
 
