@@ -2,9 +2,12 @@ use std::f32::consts::PI;
 
 use bevy::{prelude::*, window};
 use bevy_rapier3d::prelude::*;
-use character_controller_1::character::{
-    spawner::{spawn_character, CharacterSpawnSettings},
-    Character,
+use character_controller_1::{
+    character::{
+        spawner::{spawn_character, CharacterSpawnSettings},
+        Character, CharacterPlugin,
+    },
+    player_movement_input::{PlayerMovementInput, PlayerMovementInputPlugin},
 };
 
 fn main() {
@@ -13,6 +16,8 @@ fn main() {
             DefaultPlugins,
             RapierPhysicsPlugin::<NoUserData>::default(),
             RapierDebugRenderPlugin::default(),
+            CharacterPlugin,
+            PlayerMovementInputPlugin,
         ))
         .add_systems(
             Startup,
@@ -97,14 +102,21 @@ fn spawn_test_character(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let spawn_settings = CharacterSpawnSettings::default();
-    let character = Character::default();
+    let spawn_settings = CharacterSpawnSettings {
+        spawn_position: Vec3::new(-1.0, 0.0, 0.0),
+        drag_factor: 0.5,
+        ..default()
+    };
 
-    spawn_character(
+    let character_id = spawn_character(
         &mut commands,
         &mut meshes,
         &mut materials,
-        character,
+        Character::default(),
         &spawn_settings,
     );
+
+    commands
+        .entity(character_id)
+        .insert(PlayerMovementInput::default());
 }

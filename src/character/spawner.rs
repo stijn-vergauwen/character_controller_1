@@ -4,22 +4,23 @@ use bevy_rapier3d::prelude::*;
 use super::Character;
 
 pub struct CharacterSpawnSettings {
-    spawn_position: Vec3,
-    color: Color,
+    pub color: Color,
+
+    /// The value that the rigidbody's `linear_damping` will have
+    pub drag_factor: f32,
+
+    /// The percentage of the characters height that the head should take up
+    pub head_percentage_of_height: f32,
+
+    /// The value that the `Name` component of the character root will have
+    pub root_name: String,
 
     /// The total size of the character, including the head
     ///
     /// NOTE: height needs to be large enough that `straight_height()` returns a value >= 0
-    size: Vec2,
+    pub size: Vec2,
 
-    /// The percentage of the characters height that the head should take up
-    head_percentage_of_height: f32,
-
-    /// The value that the `Name` component of the character root will have
-    root_name: String,
-
-    /// The value that the rigidbody's `linear_damping` will have
-    drag_factor: f32,
+    pub spawn_position: Vec3,
 }
 
 impl CharacterSpawnSettings {

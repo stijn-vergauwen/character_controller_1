@@ -6,6 +6,8 @@ pub mod spawner;
 
 use bevy::prelude::*;
 
+use self::movement::CharacterMovementPlugin;
+
 /*
     Standards to hold myself to in this project:
 
@@ -18,7 +20,7 @@ pub struct CharacterPlugin;
 
 impl Plugin for CharacterPlugin {
     fn build(&self, app: &mut App) {
-        // app.add_systems(Update, ());
+        app.add_plugins(CharacterMovementPlugin);
     }
 }
 
@@ -31,7 +33,7 @@ impl Plugin for CharacterPlugin {
 
 // TODO: when standing on an object, use it's normal direction to align the characters movement forces
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Character {
     pub is_active: bool,
     is_running: bool,
@@ -65,6 +67,13 @@ impl Character {
 
     pub fn set_rotation_input(&mut self, value: Vec3) {
         self.rotation_input = value;
+    }
+
+    pub fn get_movement_strength(&self) -> f32 {
+        match self.is_running {
+            false => self.walk_strength,
+            true => self.run_strength,
+        }
     }
 }
 
