@@ -2,7 +2,10 @@ use std::f32::consts::PI;
 
 use bevy::{prelude::*, window};
 use bevy_rapier3d::prelude::*;
-use character_controller_1::character::spawner::spawn_default_character_with_user_input;
+use character_controller_1::character::{
+    spawner::{spawn_character, CharacterSpawnSettings},
+    Character,
+};
 
 fn main() {
     App::new()
@@ -11,7 +14,10 @@ fn main() {
             RapierPhysicsPlugin::<NoUserData>::default(),
             RapierDebugRenderPlugin::default(),
         ))
-        .add_systems(Startup, (spawn_objects, spawn_test_character))
+        .add_systems(
+            Startup,
+            (_spawn_camera, spawn_objects, spawn_test_character),
+        )
         .add_systems(Update, window::close_on_esc)
         .run();
 }
@@ -21,6 +27,10 @@ fn _spawn_camera(mut commands: Commands) {
         Name::from("Scene camera"),
         Camera3dBundle {
             transform: Transform::from_xyz(-6.0, 6.0, 12.0).looking_at(Vec3::ZERO, Vec3::Y),
+            camera: Camera {
+                order: 20,
+                ..default()
+            },
             ..Default::default()
         },
     ));
@@ -56,7 +66,7 @@ fn spawn_objects(
                 perceptual_roughness: 1.0,
                 ..default()
             }),
-            transform: Transform::from_xyz(0.0, 1.5, 0.0),
+            transform: Transform::from_xyz(1.0, 1.5, 0.0),
             ..default()
         },
         RigidBody::Dynamic,
@@ -82,6 +92,19 @@ fn spawn_objects(
     ));
 }
 
-fn spawn_test_character(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<StandardMaterial>>) {
-    spawn_default_character_with_user_input(&mut commands, &mut meshes, &mut materials);
+fn spawn_test_character(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let spawn_settings = CharacterSpawnSettings::default();
+    let character = Character::default();
+
+    spawn_character(
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+        character,
+        &spawn_settings,
+    );
 }

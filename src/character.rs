@@ -67,3 +67,20 @@ impl Character {
         self.rotation_input = value;
     }
 }
+
+impl Default for Character {
+    fn default() -> Self {
+        Self {
+            is_active: false,
+            is_running: false,
+            on_ground: false,
+            movement_input: Vec3::ZERO,
+            rotation_input: Vec3::ZERO,
+            walk_strength: 8.0,
+            run_strength: 13.0,
+            jump_strength: 3.0,
+            // TODO: make this turn strength value less weird
+            turn_strength: 0.0007,
+        }
+    }
+}

@@ -1,19 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-use crate::player_movement_input::PlayerMovementInput;
-
 use super::Character;
-
-const WALKING_STRENGTH: f32 = 8.0;
-const RUNNING_STRENGTH: f32 = 13.0;
-const ROTATION_STRENGTH: f32 = 0.0007;
-const JUMP_STRENGTH: f32 = 3.0;
-
-const CHARACTER_COLOR: Color = Color::ORANGE;
-
-const HEAD_SIZE: f32 = 0.5;
-const HEAD_HEIGHT_OFFSET: f32 = 1.0;
 
 pub struct CharacterSpawnSettings {
     spawn_position: Vec3,
@@ -26,6 +14,9 @@ pub struct CharacterSpawnSettings {
 
     /// The percentage of the characters height that the head should take up
     head_percentage_of_height: f32,
+
+    /// The value that the `Name` component of the character root will have
+    root_name: String,
 }
 
 impl CharacterSpawnSettings {
@@ -58,63 +49,66 @@ impl CharacterSpawnSettings {
     }
 }
 
+/*
+    Entity hierarchy:
+    - Character root (character components and rb, on Y: 0)
+        - Character body (capsule with collider)
+        - Character head (cube with collider)
+            - First person camera
+*/
+
 impl Default for CharacterSpawnSettings {
     fn default() -> Self {
         Self {
-            spawn_position: Vec3::Y,
+            spawn_position: Vec3::ZERO,
             color: Color::CYAN,
             size: Vec2::new(0.8, 2.0),
-            head_percentage_of_height: 15.0,
+            head_percentage_of_height: 20.0,
+            root_name: String::from("Default character root"),
         }
     }
 }
 
-pub fn spawn_default_character_with_user_input(
+/// Spawns a character complete with a body, head, rigidbody and colliders, and first-person camera.
+///
+/// Returns the character root entity
+pub fn spawn_character(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
-) {
-    let spawn_settings = CharacterSpawnSettings::default();
+    character: Character,
+    spawn_settings: &CharacterSpawnSettings,
+) -> Entity {
+    let character_material = build_character_material(materials, spawn_settings);
 
     commands
         .spawn((
-            Name::from("Default character body"),
-            build_character_body(meshes, materials, &spawn_settings),
+            Name::from(spawn_settings.root_name.clone()),
+            // TODO: add variable for damping, likely in character data
             build_rigid_body(1.0),
-            Character::new(
-                WALKING_STRENGTH,
-                RUNNING_STRENGTH,
-                JUMP_STRENGTH,
-                ROTATION_STRENGTH,
-            ),
-            PlayerMovementInput::default(),
+            character,
+            TransformBundle::from_transform(Transform::from_translation(
+                spawn_settings.spawn_position,
+            )),
+            VisibilityBundle::default(),
         ))
-        .with_children(|body| {
+        .with_children(|root| {
+            // Body
+            root.spawn((
+                Name::from("Character body"),
+                build_character_body(meshes, character_material.clone(), spawn_settings),
+            ));
+
             // Head
-            body.spawn((
-                Name::from("Default character head"),
-                PbrBundle {
-                    mesh: meshes.add(shape::Cube::new(HEAD_SIZE).into()),
-                    material: materials.add(StandardMaterial {
-                        base_color: CHARACTER_COLOR,
-                        perceptual_roughness: 1.0,
-                        ..default()
-                    }),
-                    transform: Transform::from_xyz(0.0, HEAD_HEIGHT_OFFSET, 0.0),
-                    ..default()
-                },
+            root.spawn((
+                Name::from("Character head"),
+                build_character_head(meshes, character_material.clone(), spawn_settings),
             ))
             .with_children(|head| {
-                spawn_character_camera(head);
+                head.spawn((Name::from("Character camera"), Camera3dBundle::default()));
             });
-        });
-}
-
-fn spawn_character_camera(parent: &mut ChildBuilder) {
-    parent.spawn((
-        Name::from("Character first-person camera"),
-        Camera3dBundle { ..default() },
-    ));
+        })
+        .id()
 }
 
 /// Returns a dynamic rigidbody with relevant components for characters
@@ -144,7 +138,7 @@ fn build_rigid_body(
 /// Returns a capsule with collider that has the given size and color
 fn build_character_body(
     meshes: &mut ResMut<Assets<Mesh>>,
-    materials: &mut ResMut<Assets<StandardMaterial>>,
+    material_handle: Handle<StandardMaterial>,
     spawn_settings: &CharacterSpawnSettings,
 ) -> (PbrBundle, Collider) {
     (
@@ -157,12 +151,8 @@ fn build_character_body(
                 }
                 .into(),
             ),
-            material: materials.add(StandardMaterial {
-                base_color: spawn_settings.color,
-                perceptual_roughness: 1.0,
-                ..default()
-            }),
-            transform: Transform::from_translation(spawn_settings.spawn_position),
+            material: material_handle,
+            transform: Transform::from_xyz(0.0, spawn_settings.half_body_height(), 0.0),
             ..default()
         },
         Collider::capsule_y(
@@ -170,4 +160,36 @@ fn build_character_body(
             spawn_settings.radius(),
         ),
     )
+}
+
+fn build_character_head(
+    meshes: &mut ResMut<Assets<Mesh>>,
+    material_handle: Handle<StandardMaterial>,
+    spawn_settings: &CharacterSpawnSettings,
+) -> (PbrBundle, Collider) {
+    let head_size = spawn_settings.head_height();
+    (
+        PbrBundle {
+            mesh: meshes.add(shape::Cube::new(head_size).into()),
+            material: material_handle,
+            transform: Transform::from_xyz(
+                0.0,
+                spawn_settings.half_body_height() + spawn_settings.head_height_offset(),
+                0.0,
+            ),
+            ..default()
+        },
+        Collider::cuboid(head_size / 2.0, head_size / 2.0, head_size / 2.0),
+    )
+}
+
+fn build_character_material(
+    materials: &mut ResMut<Assets<StandardMaterial>>,
+    spawn_settings: &CharacterSpawnSettings,
+) -> Handle<StandardMaterial> {
+    materials.add(StandardMaterial {
+        base_color: spawn_settings.color,
+        perceptual_roughness: 1.0,
+        ..default()
+    })
 }
