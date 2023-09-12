@@ -16,8 +16,6 @@ impl Plugin for PlayerMovementInputPlugin {
     }
 }
 
-// This plugin updates the character input if a PlayerMovementInput component is added, this component hold config like keybinds
-
 #[derive(Component)]
 pub struct PlayerMovementInput {
     keybinds: MovementKeybinds,

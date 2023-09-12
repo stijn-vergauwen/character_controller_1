@@ -26,8 +26,9 @@ impl Plugin for CharacterPlugin {
 }
 
 // TODO: move on_ground to it's own general component that checks if things are grounded
+// TODO: add aerial_multiplier or something to set movement strength when not grounded
 
-// TODO: make character camera it's own component, to allow no cam or third person cam.
+// TODO: make character camera it's own component, to allow no cam or third person cam
 
 // TODO: when standing on an object, use it's normal direction to align the characters movement forces
 
