@@ -118,7 +118,8 @@ fn spawn_test_character(
         &spawn_settings,
     );
 
-    commands
-        .entity(character_id)
-        .insert(PlayerMovementInput::default());
+    commands.entity(character_id).insert(PlayerMovementInput {
+        hold_to_run: false,
+        ..default()
+    });
 }

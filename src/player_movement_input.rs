@@ -94,7 +94,9 @@ fn update_character_running(
                 character.toggle_running();
             }
         } else {
-            if input.just_pressed(movement.keybinds.run_key) {
+            if input.just_pressed(movement.keybinds.run_key)
+                || (character.is_running && character.get_movement_input() == Vec3::ZERO)
+            {
                 character.toggle_running();
             }
         }

@@ -52,6 +52,10 @@ impl Character {
         self.movement_input = if self.is_active { value } else { Vec3::ZERO };
     }
 
+    pub fn get_movement_input(&self) -> Vec3 {
+        self.movement_input
+    }
+
     /// Sets the rotation input to the given value, or `Vec3::ZERO` if this character is inactive.
     pub fn set_rotation_input(&mut self, value: Vec3) {
         self.rotation_input = if self.is_active { value } else { Vec3::ZERO };
