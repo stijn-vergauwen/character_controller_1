@@ -44,7 +44,7 @@ fn update_grounded(
 
         let ray_origin = translation + direction * grounded.check_offset;
         let max_toi = grounded.check_distance;
-        let filter = QueryFilter::exclude_dynamic().exclude_rigid_body(entity);
+        let filter = QueryFilter::default().exclude_rigid_body(entity);
         let solid = true;
 
         grounded.is_grounded = rapier_context
