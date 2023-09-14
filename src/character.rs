@@ -41,7 +41,6 @@ impl Plugin for CharacterPlugin {
 pub struct Character {
     pub is_active: bool,
     pub is_running: bool,
-    on_ground: bool,
     movement_input: Vec3,
     rotation_input: Vec3,
 }
@@ -76,7 +75,6 @@ impl Default for Character {
         Self {
             is_active: false,
             is_running: false,
-            on_ground: false,
             movement_input: Vec3::ZERO,
             rotation_input: Vec3::ZERO,
         }

@@ -1,7 +1,11 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-use super::{Character, CharacterHead, config::CharacterConfig};
+use crate::grounded::Grounded;
+
+use super::{config::CharacterConfig, Character, CharacterHead};
+
+const GROUNDED_CHECK_DISTANCE: f32 = 0.1;
 
 pub struct CharacterSpawnSettings {
     pub color: Color,
@@ -97,6 +101,7 @@ pub fn spawn_character(
                 spawn_settings.spawn_position,
             )),
             VisibilityBundle::default(),
+            Grounded::new(GROUNDED_CHECK_DISTANCE, 0.0),
         ))
         .with_children(|root| {
             // Body

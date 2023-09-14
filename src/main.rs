@@ -8,7 +8,7 @@ use character_controller_1::{
         spawner::{spawn_character, CharacterSpawnSettings},
         Character, CharacterPlugin,
     },
-    grounded::{Grounded, GroundedPlugin},
+    grounded::GroundedPlugin,
     player_movement_input::{PlayerMovementInput, PlayerMovementInputPlugin},
 };
 
@@ -71,12 +71,11 @@ fn spawn_objects(
                 perceptual_roughness: 1.0,
                 ..default()
             }),
-            transform: Transform::from_xyz(1.0, 7.5, -10.0),
+            transform: Transform::from_xyz(1.0, 3.5, -10.0),
             ..default()
         },
         RigidBody::Dynamic,
         Collider::cuboid(1.0, 1.0, 1.0),
-        Grounded::new(2.0, 0.0),
     ));
 
     // Light
@@ -104,7 +103,7 @@ fn spawn_test_character(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     let spawn_settings = CharacterSpawnSettings {
-        spawn_position: Vec3::new(-1.0, 0.0, 0.0),
+        spawn_position: Vec3::new(-1.0, 5.0, 0.0),
         drag_factor: 0.5,
         ..default()
     };
