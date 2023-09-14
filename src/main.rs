@@ -8,7 +8,7 @@ use character_controller_1::{
         spawner::{spawn_character, CharacterSpawnSettings},
         Character, CharacterPlugin,
     },
-    grounded::GroundedPlugin,
+    grounded::{CastMethod, GroundedPlugin},
     player_movement_input::{PlayerMovementInput, PlayerMovementInputPlugin},
 };
 use world::WorldPlugin;
@@ -24,7 +24,7 @@ fn main() {
             GroundedPlugin,
             WorldPlugin,
         ))
-        .add_systems(Startup, spawn_test_character)
+        .add_systems(Startup, (spawn_test_character, _spawn_test_camera))
         .add_systems(Update, window::close_on_esc)
         .run();
 }
@@ -50,6 +50,8 @@ fn spawn_test_character(
 ) {
     let spawn_settings = CharacterSpawnSettings {
         spawn_position: Vec3::new(-1.0, 5.0, 0.0),
+        grounded_check_offset: -0.29,
+        grounded_check_method: CastMethod::Sphere { radius: 0.3 },
         ..default()
     };
 

@@ -1,11 +1,9 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-use crate::grounded::Grounded;
+use crate::grounded::{CastMethod, Grounded};
 
 use super::{config::CharacterConfig, jump::CharacterJump, Character, CharacterHead};
-
-const GROUNDED_CHECK_DISTANCE: f32 = 0.1;
 
 pub struct CharacterSpawnSettings {
     pub color: Color,
@@ -22,6 +20,10 @@ pub struct CharacterSpawnSettings {
     pub size: Vec2,
 
     pub spawn_position: Vec3,
+
+    pub grounded_check_distance: f32,
+    pub grounded_check_offset: f32,
+    pub grounded_check_method: CastMethod,
 }
 
 impl CharacterSpawnSettings {
@@ -70,9 +72,14 @@ impl Default for CharacterSpawnSettings {
             size: Vec2::new(0.8, 2.0),
             head_percentage_of_height: 20.0,
             root_name: String::from("Default character root"),
+            grounded_check_distance: 0.1,
+            grounded_check_offset: 0.0,
+            grounded_check_method: CastMethod::Ray,
         }
     }
 }
+
+// TODO: split up into multiple functions, add one's for: grounded + jump, camera
 
 /// Spawns a character complete with a body, head, rigidbody, colliders, and first-person camera.
 ///
@@ -97,7 +104,11 @@ pub fn spawn_character(
                 spawn_settings.spawn_position,
             )),
             VisibilityBundle::default(),
-            Grounded::new(GROUNDED_CHECK_DISTANCE, 0.0),
+            Grounded::new(
+                spawn_settings.grounded_check_distance,
+                spawn_settings.grounded_check_offset,
+                spawn_settings.grounded_check_method,
+            ),
             CharacterJump::new(),
         ))
         .with_children(|root| {
