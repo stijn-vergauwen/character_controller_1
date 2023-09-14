@@ -1,13 +1,15 @@
 pub mod config;
 mod interaction;
-mod jump;
+pub mod jump;
 mod movement;
 mod rotation;
 pub mod spawner;
 
 use bevy::prelude::*;
 
-use self::{movement::CharacterMovementPlugin, rotation::CharacterRotationPlugin};
+use self::{
+    jump::CharacterJumpPlugin, movement::CharacterMovementPlugin, rotation::CharacterRotationPlugin,
+};
 
 /*
     Standards to hold myself to in this project:
@@ -21,7 +23,11 @@ pub struct CharacterPlugin;
 
 impl Plugin for CharacterPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((CharacterMovementPlugin, CharacterRotationPlugin));
+        app.add_plugins((
+            CharacterMovementPlugin,
+            CharacterRotationPlugin,
+            CharacterJumpPlugin,
+        ));
     }
 }
 
@@ -46,6 +52,8 @@ pub struct Character {
 }
 
 impl Character {
+    // TODO: don't check for is_active when setting input, check it when using those inputs (move checks to movement and rotation)
+
     /// Sets the movement input to the given value, or `Vec3::ZERO` if this character is inactive.
     pub fn set_movement_input(&mut self, value: Vec3) {
         self.movement_input = if self.is_active { value } else { Vec3::ZERO };

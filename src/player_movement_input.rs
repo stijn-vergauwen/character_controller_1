@@ -1,6 +1,9 @@
 use bevy::{input::mouse::MouseMotion, prelude::*};
 
-use crate::character::Character;
+use crate::{
+    character::{jump::CharacterJump, Character},
+    grounded::Grounded,
+};
 
 pub struct PlayerMovementInputPlugin;
 
@@ -12,6 +15,7 @@ impl Plugin for PlayerMovementInputPlugin {
                 update_character_movement_input,
                 update_character_rotation_input,
                 update_character_running,
+                update_character_jump_input,
             ),
         );
     }
@@ -97,6 +101,17 @@ fn update_character_running(
             if input.just_pressed(movement.keybinds.run_key) {
                 character.toggle_running();
             }
+        }
+    }
+}
+
+fn update_character_jump_input(
+    mut character_query: Query<(&PlayerMovementInput, &mut CharacterJump, &Grounded)>,
+    input: Res<Input<KeyCode>>,
+) {
+    for (movement, mut jump, grounded) in character_query.iter_mut() {
+        if input.just_pressed(movement.keybinds.jump_key) && grounded.is_grounded() {
+            jump.has_jump_input = true;
         }
     }
 }

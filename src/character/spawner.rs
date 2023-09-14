@@ -3,7 +3,7 @@ use bevy_rapier3d::prelude::*;
 
 use crate::grounded::Grounded;
 
-use super::{config::CharacterConfig, Character, CharacterHead};
+use super::{config::CharacterConfig, jump::CharacterJump, Character, CharacterHead};
 
 const GROUNDED_CHECK_DISTANCE: f32 = 0.1;
 
@@ -102,6 +102,7 @@ pub fn spawn_character(
             )),
             VisibilityBundle::default(),
             Grounded::new(GROUNDED_CHECK_DISTANCE, 0.0),
+            CharacterJump::new(),
         ))
         .with_children(|root| {
             // Body

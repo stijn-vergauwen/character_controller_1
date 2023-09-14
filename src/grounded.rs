@@ -28,6 +28,10 @@ impl Grounded {
             check_offset,
         }
     }
+
+    pub fn is_grounded(&self) -> bool {
+        self.is_grounded
+    }
 }
 
 fn update_grounded(
@@ -46,7 +50,5 @@ fn update_grounded(
         grounded.is_grounded = rapier_context
             .cast_ray(ray_origin, direction, max_toi, solid, filter)
             .is_some();
-
-        println!("Is grounded: {}", grounded.is_grounded);
     }
 }
