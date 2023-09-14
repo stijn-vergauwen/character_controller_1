@@ -124,6 +124,7 @@ fn build_rigid_body(
     linear_damping: f32,
 ) -> (
     RigidBody,
+    Velocity,
     LockedAxes,
     ExternalForce,
     ExternalImpulse,
@@ -131,6 +132,7 @@ fn build_rigid_body(
 ) {
     (
         RigidBody::Dynamic,
+        Velocity::default(),
         LockedAxes::ROTATION_LOCKED,
         ExternalForce::default(),
         ExternalImpulse::default(),

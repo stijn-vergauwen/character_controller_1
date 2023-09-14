@@ -14,11 +14,18 @@ pub struct CharacterConfig {
 }
 
 impl CharacterConfig {
-    // TODO: only input is_running, if character is active is not relevant to this struct
+    // TODO: only input is_running, if character is active is not relevant to this component
     pub fn get_movement_strength(&self, character: &Character) -> f32 {
         match character.is_active && character.is_running {
             false => self.walk_strength,
             true => self.run_strength,
+        }
+    }
+
+    pub fn get_movement_speed(&self, is_running: bool) -> f32 {
+        match is_running {
+            false => self.walk_speed,
+            true => self.run_speed,
         }
     }
 }
