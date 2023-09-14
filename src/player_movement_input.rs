@@ -11,6 +11,7 @@ impl Plugin for PlayerMovementInputPlugin {
             (
                 update_character_movement_input,
                 update_character_rotation_input,
+                update_character_running,
             ),
         );
     }
@@ -18,9 +19,9 @@ impl Plugin for PlayerMovementInputPlugin {
 
 #[derive(Component)]
 pub struct PlayerMovementInput {
-    keybinds: MovementKeybinds,
-    hold_to_run: bool,
-    hold_to_crouch: bool,
+    pub keybinds: MovementKeybinds,
+    pub hold_to_run: bool,
+    pub hold_to_crouch: bool,
 }
 
 impl Default for PlayerMovementInput {
@@ -34,13 +35,13 @@ impl Default for PlayerMovementInput {
 }
 
 pub struct MovementKeybinds {
-    forward_key: KeyCode,
-    back_key: KeyCode,
-    left_key: KeyCode,
-    right_key: KeyCode,
-    run_key: KeyCode,
-    jump_key: KeyCode,
-    crouch_key: KeyCode,
+    pub forward_key: KeyCode,
+    pub back_key: KeyCode,
+    pub left_key: KeyCode,
+    pub right_key: KeyCode,
+    pub run_key: KeyCode,
+    pub jump_key: KeyCode,
+    pub crouch_key: KeyCode,
 }
 
 impl Default for MovementKeybinds {
@@ -80,6 +81,23 @@ fn update_character_rotation_input(
 
     for mut character in character_query.iter_mut() {
         character.set_rotation_input(as_rotation);
+    }
+}
+
+fn update_character_running(
+    mut character_query: Query<(&PlayerMovementInput, &mut Character)>,
+    input: Res<Input<KeyCode>>,
+) {
+    for (movement, mut character) in character_query.iter_mut() {
+        if movement.hold_to_run {
+            if input.pressed(movement.keybinds.run_key) != character.is_running {
+                character.toggle_running();
+            }
+        } else {
+            if input.just_pressed(movement.keybinds.run_key) {
+                character.toggle_running();
+            }
+        }
     }
 }
 

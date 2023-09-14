@@ -1,9 +1,9 @@
+pub mod config;
 mod interaction;
 mod jump;
 mod movement;
 mod rotation;
 pub mod spawner;
-pub mod config;
 
 use bevy::prelude::*;
 
@@ -32,14 +32,15 @@ impl Plugin for CharacterPlugin {
 
 // TODO: when standing on an object, use it's normal direction to align the characters movement forces
 
+// TODO: add a correcting force that pushes the character velocity to it's move input
 
 /// The main character component, holds state and current inputs.
-/// 
+///
 /// NOTE: To spawn a character it is recommended to use the spawner module.
 #[derive(Component, Debug)]
 pub struct Character {
     pub is_active: bool,
-    is_running: bool,
+    pub is_running: bool,
     on_ground: bool,
     movement_input: Vec3,
     rotation_input: Vec3,
@@ -54,6 +55,10 @@ impl Character {
     /// Sets the rotation input to the given value, or `Vec3::ZERO` if this character is inactive.
     pub fn set_rotation_input(&mut self, value: Vec3) {
         self.rotation_input = if self.is_active { value } else { Vec3::ZERO };
+    }
+
+    pub fn toggle_running(&mut self) {
+        self.is_running = !self.is_running;
     }
 
     /// Sets `is_active` to true.

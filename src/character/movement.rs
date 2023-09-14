@@ -14,6 +14,7 @@ impl Plugin for CharacterMovementPlugin {
 fn move_character(mut characters: Query<(&mut ExternalForce, &Character, &CharacterConfig, &Transform)>) {
     for (mut force, character, config, transform) in characters.iter_mut() {
         // TODO: rotate movement direction by the normal of the current ground object
+        // TODO: stop accelerating at max walk / run speed
         let direction = transform.rotation * character.movement_input;
 
         force.force = direction * config.get_movement_strength(character);
