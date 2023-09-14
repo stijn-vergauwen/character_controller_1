@@ -50,7 +50,7 @@ fn spawn_test_character(
 ) {
     let spawn_settings = CharacterSpawnSettings {
         spawn_position: Vec3::new(-1.0, 5.0, 0.0),
-        grounded_check_offset: -0.29,
+        grounded_height_offset: -0.29,
         grounded_check_method: CastMethod::Sphere { radius: 0.3 },
         ..default()
     };

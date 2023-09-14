@@ -15,18 +15,16 @@ impl Plugin for GroundedPlugin {
 #[derive(Component)]
 pub struct Grounded {
     is_grounded: bool,
-    check_distance: f32,
-    /// The distance that the raycast will be offsetted down, use this when the raycasts hit it's own colliders.
-    check_offset: f32,
+    /// The amount that the height of the cast origin will be offsetted, use to finetune position.
+    height_offset: f32,
     check_method: CastMethod,
 }
 
 impl Grounded {
-    pub fn new(check_distance: f32, check_offset: f32, check_method: CastMethod) -> Self {
+    pub fn new(height_offset: f32, check_method: CastMethod) -> Self {
         Self {
             is_grounded: false,
-            check_distance,
-            check_offset,
+            height_offset,
             check_method,
         }
     }
@@ -38,8 +36,7 @@ impl Grounded {
 
 #[derive(Clone, Copy)]
 pub enum CastMethod {
-    // TODO: move "check_distance" into this ray, since it's only relevant for rays
-    Ray,
+    Ray { distance: f32 },
     Sphere { radius: f32 },
     // TODO: add collider type
 }
@@ -52,17 +49,15 @@ fn update_grounded(
         let translation = global_transform.translation();
         let direction = Vec3::NEG_Y;
 
-        let ray_origin = translation + direction * grounded.check_offset;
+        let ray_origin = translation + direction * grounded.height_offset;
         let filter = QueryFilter::default().exclude_rigid_body(entity);
 
-        // TODO: Add options to cast a sphere or cube instead of ray <- doing
-
         grounded.is_grounded = match grounded.check_method {
-            CastMethod::Ray => check_ray_hit(
+            CastMethod::Ray { distance } => check_ray_hit(
                 &rapier_context,
                 ray_origin,
                 direction,
-                grounded.check_distance,
+                distance,
                 filter,
             ),
             CastMethod::Sphere { radius } => check_sphere_hit(
@@ -70,7 +65,6 @@ fn update_grounded(
                 ray_origin,
                 direction,
                 radius,
-                grounded.check_distance,
                 filter,
             ),
         }
@@ -94,7 +88,6 @@ fn check_sphere_hit(
     origin: Vec3,
     direction: Vec3,
     radius: f32,
-    distance: f32,
     filter: QueryFilter,
 ) -> bool {
     rapier_context
@@ -103,7 +96,7 @@ fn check_sphere_hit(
             Quat::IDENTITY,
             direction,
             &Collider::ball(radius),
-            distance,
+            0.0,
             filter,
         )
         .is_some()
@@ -117,20 +110,14 @@ fn draw_grounded_check_gizmos(
         let translation = global_transform.translation();
         let direction = Vec3::NEG_Y;
 
-        let ray_origin = translation + direction * grounded.check_offset;
+        let ray_origin = translation + direction * grounded.height_offset;
 
         match grounded.check_method {
-            CastMethod::Ray => {
-                gizmos.ray(ray_origin, direction * grounded.check_distance, Color::BLUE);
+            CastMethod::Ray { distance } => {
+                gizmos.ray(ray_origin, direction * distance, Color::BLUE);
             }
             CastMethod::Sphere { radius } => {
                 gizmos.sphere(ray_origin, Quat::IDENTITY, radius, Color::BLUE);
-                gizmos.sphere(
-                    ray_origin + direction * grounded.check_distance,
-                    Quat::IDENTITY,
-                    radius,
-                    Color::BLUE,
-                );
             }
         };
     }

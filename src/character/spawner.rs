@@ -21,8 +21,7 @@ pub struct CharacterSpawnSettings {
 
     pub spawn_position: Vec3,
 
-    pub grounded_check_distance: f32,
-    pub grounded_check_offset: f32,
+    pub grounded_height_offset: f32,
     pub grounded_check_method: CastMethod,
 }
 
@@ -72,9 +71,8 @@ impl Default for CharacterSpawnSettings {
             size: Vec2::new(0.8, 2.0),
             head_percentage_of_height: 20.0,
             root_name: String::from("Default character root"),
-            grounded_check_distance: 0.1,
-            grounded_check_offset: 0.0,
-            grounded_check_method: CastMethod::Ray,
+            grounded_height_offset: 0.0,
+            grounded_check_method: CastMethod::Ray { distance: 0.1 },
         }
     }
 }
@@ -105,8 +103,7 @@ pub fn spawn_character(
             )),
             VisibilityBundle::default(),
             Grounded::new(
-                spawn_settings.grounded_check_distance,
-                spawn_settings.grounded_check_offset,
+                spawn_settings.grounded_height_offset,
                 spawn_settings.grounded_check_method,
             ),
             CharacterJump::new(),
