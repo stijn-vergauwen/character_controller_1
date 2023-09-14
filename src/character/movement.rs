@@ -9,7 +9,11 @@ impl Plugin for CharacterMovementPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (move_character, limit_character_speed.after(move_character)),
+            (
+                move_character,
+                limit_character_speed.after(move_character),
+                stop_running_if_no_movement_input,
+            ),
         );
     }
 }
@@ -44,6 +48,15 @@ fn limit_character_speed(mut characters: Query<(&mut Velocity, &Character, &Char
         let fraction_over_max = (velocity.linvel.length() - max_speed) / max_speed;
 
         velocity.linvel *= 1.0 - fraction_over_max * slowdown_factor;
+    }
+}
+
+fn stop_running_if_no_movement_input(mut characters: Query<&mut Character>) {
+    for mut character in characters
+        .iter_mut()
+        .filter(|character| character.is_running && character.movement_input == Vec3::ZERO)
+    {
+        character.toggle_running();
     }
 }
 

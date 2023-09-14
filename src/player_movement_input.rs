@@ -94,10 +94,7 @@ fn update_character_running(
                 character.toggle_running();
             }
         } else {
-            if input.just_pressed(movement.keybinds.run_key)
-            // TODO: the check to toggle running off if there's no movement input should not be part of input plugin, probably character movement
-                || (character.is_running && character.get_movement_input() == Vec3::ZERO)
-            {
+            if input.just_pressed(movement.keybinds.run_key) {
                 character.toggle_running();
             }
         }

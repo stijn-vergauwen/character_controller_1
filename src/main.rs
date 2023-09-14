@@ -119,7 +119,7 @@ fn spawn_test_character(
     );
 
     commands.entity(character_id).insert(PlayerMovementInput {
-        hold_to_run: false,
+        hold_to_run: true,
         ..default()
     });
 }
