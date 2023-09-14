@@ -31,7 +31,7 @@ impl Plugin for CharacterPlugin {
     }
 }
 
-// TODO: add aerial_multiplier or something to set movement strength when not grounded
+// TODO: add aerial_multiplier or something to set movement strength when not grounded <- doing
 
 // TODO: make character camera it's own component, to allow no cam or third person cam
 

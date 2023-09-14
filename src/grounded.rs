@@ -47,6 +47,8 @@ fn update_grounded(
         let filter = QueryFilter::default().exclude_rigid_body(entity);
         let solid = true;
 
+        // TODO: Add options to cast a sphere or cube instead of ray
+
         grounded.is_grounded = rapier_context
             .cast_ray(ray_origin, direction, max_toi, solid, filter)
             .is_some();

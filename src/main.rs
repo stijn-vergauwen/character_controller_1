@@ -58,12 +58,17 @@ fn spawn_test_character(
         ..default()
     };
 
+    let character_config = CharacterConfig {
+        aerial_multiplier: 1.0,
+        ..default()
+    };
+
     let character_id = spawn_character(
         &mut commands,
         &mut meshes,
         &mut materials,
         character,
-        CharacterConfig::default(),
+        character_config,
         &spawn_settings,
     );
 

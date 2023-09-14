@@ -9,14 +9,23 @@ pub struct CharacterConfig {
     pub turn_speed: f32,
     pub jump_strength: f32,
     pub drag_factor: f32,
+
+    /// What movement will be multiplied by when in the air
+    pub aerial_multiplier: f32,
 }
 
 impl CharacterConfig {
-    pub fn get_movement_strength(&self, is_running: bool) -> f32 {
-        match is_running {
+    pub fn get_movement_strength(&self, is_grounded: bool, is_running: bool) -> f32 {
+        let mut strength = match is_running {
             false => self.walk_strength,
             true => self.run_strength,
+        };
+
+        if !is_grounded {
+            strength *= self.aerial_multiplier;
         }
+
+        strength
     }
 
     pub fn get_movement_speed(&self, is_running: bool) -> f32 {
@@ -31,13 +40,14 @@ impl Default for CharacterConfig {
     fn default() -> Self {
         Self {
             walk_speed: 4.0,
-            walk_strength: 8.0,
-            run_speed: 8.0,
-            run_strength: 13.0,
-            jump_strength: 3.0,
-            // TODO: make this turn strength value less weird
+            walk_strength: 7.0,
+            run_speed: 10.0,
+            run_strength: 15.0,
+            jump_strength: 5.0,
+            // TODO: make this turn strength value less wierd
             turn_speed: 0.0007,
             drag_factor: 0.5,
+            aerial_multiplier: 0.5,
         }
     }
 }
