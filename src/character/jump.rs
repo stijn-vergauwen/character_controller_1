@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
+use super::config::CharacterConfig;
+
 pub struct CharacterJumpPlugin;
 
 impl Plugin for CharacterJumpPlugin {
@@ -22,9 +24,14 @@ impl CharacterJump {
     }
 }
 
-fn jump_character(characters: Query<(&mut ExternalImpulse, &CharacterJump)>) {
-    // TODO: implement jump functionality
-    for (_, jump) in characters.iter() {
-        println!("Has jump input: {}", jump.has_jump_input);
+fn jump_character(
+    mut characters: Query<(&mut ExternalImpulse, &mut CharacterJump, &CharacterConfig)>,
+) {
+    for (mut impulse, mut jump, config) in characters
+        .iter_mut()
+        .filter(|(_, jump, _)| jump.has_jump_input)
+    {
+        jump.has_jump_input = false;
+        impulse.impulse = Vec3::Y * config.jump_strength;
     }
 }

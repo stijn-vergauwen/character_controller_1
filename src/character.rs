@@ -53,6 +53,7 @@ pub struct Character {
 
 impl Character {
     // TODO: don't check for is_active when setting input, check it when using those inputs (move checks to movement and rotation)
+    // TODO: since getters and setters will just be passing values, make the fields public and remove these functions
 
     /// Sets the movement input to the given value, or `Vec3::ZERO` if this character is inactive.
     pub fn set_movement_input(&mut self, value: Vec3) {
