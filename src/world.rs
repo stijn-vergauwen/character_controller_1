@@ -58,32 +58,26 @@ fn spawn_cubes(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     let base_position = Vec3::new(2.0, 4.0, -20.0);
-    let max_offset = Vec3::new(10.0, 0.0, 10.0);
+    let max_offset = Vec3::new(10.0, 1.0, 10.0);
     let spawn_count = 20;
     let size = 1.5;
 
-    let mesh_handle = meshes.add(shape::Cube::new(size).into());
-
-    let material_handle = materials.add(StandardMaterial {
-        base_color: Color::ORANGE,
-        perceptual_roughness: 1.0,
-        ..default()
-    });
+    let mesh_handle = build_cube_mesh(&mut meshes, size);
+    let material_handle = build_material(&mut materials, Color::YELLOW);
 
     for i in 0..spawn_count {
-        let position_offset = (random_vec3() - Vec3::ONE * 0.5) * max_offset;
+        let position_offset = random_vec3() * max_offset;
         let spawn_position = base_position + position_offset + Vec3::Y * i as f32;
 
         commands.spawn((
-            Name::from(format!("Orange physics cube {}", i + 1)),
-            PbrBundle {
-                mesh: mesh_handle.clone(),
-                material: material_handle.clone(),
-                transform: Transform::from_translation(spawn_position),
-                ..default()
-            },
-            RigidBody::Dynamic,
-            Collider::cuboid(size / 2.0, size / 2.0, size / 2.0),
+            Name::from(format!("Piled physics cube {}", i + 1)),
+            build_cube(
+                spawn_position,
+                Quat::IDENTITY,
+                Vec3::splat(size),
+                mesh_handle.clone(),
+                material_handle.clone(),
+            ),
             Damping {
                 linear_damping: 0.5,
                 ..default()
@@ -99,4 +93,42 @@ fn random_vec3() -> Vec3 {
         y: rng.gen(),
         z: rng.gen(),
     }
+}
+
+fn build_cube_mesh(meshes: &mut ResMut<Assets<Mesh>>, size: f32) -> Handle<Mesh> {
+    meshes.add(shape::Cube::new(size).into())
+}
+
+fn build_material(
+    materials: &mut ResMut<Assets<StandardMaterial>>,
+    color: Color,
+) -> Handle<StandardMaterial> {
+    materials.add(StandardMaterial {
+        base_color: color,
+        perceptual_roughness: 1.0,
+        ..default()
+    })
+}
+
+fn build_cube(
+    position: Vec3,
+    rotation: Quat,
+    size: Vec3,
+    mesh: Handle<Mesh>,
+    material: Handle<StandardMaterial>,
+) -> (PbrBundle, RigidBody, Collider) {
+    (
+        PbrBundle {
+            mesh,
+            material,
+            transform: Transform {
+                translation: position,
+                rotation,
+                ..default()
+            },
+            ..default()
+        },
+        RigidBody::Dynamic,
+        Collider::cuboid(size.x / 2.0, size.y / 2.0, size.z / 2.0),
+    )
 }
