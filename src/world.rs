@@ -63,7 +63,7 @@ fn spawn_cubes(
     let base_position = Vec3::new(2.0, 4.0, -20.0);
     let max_offset = Vec3::new(10.0, 1.0, 10.0);
     let spawn_count = 20;
-    let size = 1.5;
+    let size = 1.2;
 
     let mesh_handle = build_cube_mesh(&mut meshes, size);
     let material_handle = build_material(&mut materials, Color::YELLOW);

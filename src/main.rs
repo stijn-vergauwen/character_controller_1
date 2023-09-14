@@ -59,7 +59,7 @@ fn spawn_test_character(
     };
 
     let character_config = CharacterConfig {
-        aerial_multiplier: 1.0,
+        aerial_multiplier: 0.2,
         ..default()
     };
 

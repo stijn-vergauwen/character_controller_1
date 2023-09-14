@@ -42,8 +42,8 @@ impl Default for CharacterConfig {
             walk_speed: 4.0,
             walk_strength: 7.0,
             run_speed: 10.0,
-            run_strength: 15.0,
-            jump_strength: 5.0,
+            run_strength: 12.0,
+            jump_strength: 3.5,
             // TODO: make this turn strength value less wierd
             turn_speed: 0.0007,
             drag_factor: 0.5,
