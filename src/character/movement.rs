@@ -21,11 +21,14 @@ impl Plugin for CharacterMovementPlugin {
 fn move_character(
     mut characters: Query<(&mut ExternalForce, &Character, &CharacterConfig, &Transform)>,
 ) {
-    for (mut force, character, config, transform) in characters.iter_mut() {
+    for (mut force, character, config, transform) in characters
+        .iter_mut()
+        .filter(|(_, character, _, _)| character.is_active)
+    {
         // TODO: rotate movement direction by the normal of the current ground object
         let direction = transform.rotation * character.movement_input;
 
-        force.force = direction * config.get_movement_strength(character);
+        force.force = direction * config.get_movement_strength(character.is_running);
     }
 }
 
