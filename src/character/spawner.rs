@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-use crate::grounded::{CastMethod, Grounded};
+use crate::grounded::{CheckMethod, Grounded};
 
 use super::{config::CharacterConfig, jump::CharacterJump, Character, CharacterHead};
 
@@ -22,7 +22,8 @@ pub struct CharacterSpawnSettings {
     pub spawn_position: Vec3,
 
     pub grounded_height_offset: f32,
-    pub grounded_check_method: CastMethod,
+    pub grounded_check_method: CheckMethod,
+    pub draw_grounded_gizmos: bool,
 }
 
 impl CharacterSpawnSettings {
@@ -71,8 +72,9 @@ impl Default for CharacterSpawnSettings {
             size: Vec2::new(0.8, 2.0),
             head_percentage_of_height: 20.0,
             root_name: String::from("Default character root"),
-            grounded_height_offset: 0.0,
-            grounded_check_method: CastMethod::Ray { distance: 0.1 },
+            grounded_height_offset: 0.29,
+            grounded_check_method: CheckMethod::Sphere { radius: 0.3 },
+            draw_grounded_gizmos: false,
         }
     }
 }
@@ -105,6 +107,7 @@ pub fn spawn_character(
             Grounded::new(
                 spawn_settings.grounded_height_offset,
                 spawn_settings.grounded_check_method,
+                spawn_settings.draw_grounded_gizmos,
             ),
             CharacterJump::new(),
         ))
