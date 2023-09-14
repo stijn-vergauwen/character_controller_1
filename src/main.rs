@@ -104,7 +104,6 @@ fn spawn_test_character(
 ) {
     let spawn_settings = CharacterSpawnSettings {
         spawn_position: Vec3::new(-1.0, 5.0, 0.0),
-        drag_factor: 0.5,
         ..default()
     };
 

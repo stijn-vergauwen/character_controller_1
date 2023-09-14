@@ -10,9 +10,6 @@ const GROUNDED_CHECK_DISTANCE: f32 = 0.1;
 pub struct CharacterSpawnSettings {
     pub color: Color,
 
-    /// The value that the rigidbody's `linear_damping` will have
-    pub drag_factor: f32,
-
     /// The percentage of the characters height that the head should take up
     pub head_percentage_of_height: f32,
 
@@ -73,12 +70,11 @@ impl Default for CharacterSpawnSettings {
             size: Vec2::new(0.8, 2.0),
             head_percentage_of_height: 20.0,
             root_name: String::from("Default character root"),
-            drag_factor: 1.0,
         }
     }
 }
 
-/// Spawns a character complete with a body, head, rigidbody and colliders, and first-person camera.
+/// Spawns a character complete with a body, head, rigidbody, colliders, and first-person camera.
 ///
 /// Returns the character root entity
 pub fn spawn_character(
@@ -94,7 +90,7 @@ pub fn spawn_character(
     commands
         .spawn((
             Name::from(spawn_settings.root_name.clone()),
-            build_rigid_body(spawn_settings.drag_factor),
+            build_rigid_body(character_config.drag_factor),
             character,
             character_config,
             TransformBundle::from_transform(Transform::from_translation(
