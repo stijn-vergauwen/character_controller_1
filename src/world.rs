@@ -8,7 +8,10 @@ pub struct WorldPlugin;
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, (spawn_static_objects, spawn_cubes, spawn_light));
+        app.add_systems(
+            Startup,
+            (spawn_static_objects, spawn_light, spawn_cubes, spawn_slopes),
+        );
     }
 }
 
@@ -78,11 +81,56 @@ fn spawn_cubes(
                 mesh_handle.clone(),
                 material_handle.clone(),
             ),
+            RigidBody::Dynamic,
             Damping {
                 linear_damping: 0.5,
                 ..default()
             },
         ));
+    }
+}
+
+fn spawn_slopes(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let base_position = Vec3::new(10.0, 0.0, 0.0);
+    let base_rotation = Quat::from_axis_angle(Vec3::Y, (0.0 as f32).to_radians());
+    let spacing = 5.0;
+    let size = Vec3::new(2.0, 0.5, 6.0);
+    let spawn_count = 4;
+
+    let start_angle_deg = 20.0;
+    let angle_increase = 10.0;
+
+    let mesh_handle = build_rectangle_mesh(&mut meshes, size);
+    let material_handle = build_material(&mut materials, Color::AQUAMARINE);
+
+    for i in 0..spawn_count {
+        let spawn_position = base_position + get_position_offset(i, base_rotation, spacing);
+
+        commands.spawn((
+            Name::from(format!("Slope {}", i + 1)),
+            build_cube(
+                spawn_position,
+                Quat::from_axis_angle(
+                    Vec3::X,
+                    get_slope_angle_deg(i, start_angle_deg, angle_increase).to_radians(),
+                ),
+                size,
+                mesh_handle.clone(),
+                material_handle.clone(),
+            ),
+        ));
+    }
+
+    fn get_position_offset(index: i32, rotation: Quat, spacing: f32) -> Vec3 {
+        index as f32 * (rotation * (Vec3::X * spacing))
+    }
+
+    fn get_slope_angle_deg(index: i32, start_angle_deg: f32, angle_increase: f32) -> f32 {
+        start_angle_deg + index as f32 * angle_increase
     }
 }
 
@@ -97,6 +145,10 @@ fn random_vec3() -> Vec3 {
 
 fn build_cube_mesh(meshes: &mut ResMut<Assets<Mesh>>, size: f32) -> Handle<Mesh> {
     meshes.add(shape::Cube::new(size).into())
+}
+
+fn build_rectangle_mesh(meshes: &mut ResMut<Assets<Mesh>>, size: Vec3) -> Handle<Mesh> {
+    meshes.add(shape::Box::new(size.x, size.y, size.z).into())
 }
 
 fn build_material(
@@ -116,7 +168,7 @@ fn build_cube(
     size: Vec3,
     mesh: Handle<Mesh>,
     material: Handle<StandardMaterial>,
-) -> (PbrBundle, RigidBody, Collider) {
+) -> (PbrBundle, Collider) {
     (
         PbrBundle {
             mesh,
@@ -128,7 +180,6 @@ fn build_cube(
             },
             ..default()
         },
-        RigidBody::Dynamic,
         Collider::cuboid(size.x / 2.0, size.y / 2.0, size.z / 2.0),
     )
 }
