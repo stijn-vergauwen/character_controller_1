@@ -8,6 +8,7 @@ use character_controller_1::{
         spawner::{spawn_character, CharacterSpawnSettings},
         Character, CharacterPlugin,
     },
+    grounded::{Grounded, GroundedPlugin},
     player_movement_input::{PlayerMovementInput, PlayerMovementInputPlugin},
 };
 
@@ -19,6 +20,7 @@ fn main() {
             RapierDebugRenderPlugin::default(),
             CharacterPlugin,
             PlayerMovementInputPlugin,
+            GroundedPlugin,
         ))
         .add_systems(Startup, (spawn_objects, spawn_test_character))
         .add_systems(Update, window::close_on_esc)
@@ -69,11 +71,12 @@ fn spawn_objects(
                 perceptual_roughness: 1.0,
                 ..default()
             }),
-            transform: Transform::from_xyz(1.0, 1.5, 0.0),
+            transform: Transform::from_xyz(1.0, 7.5, -10.0),
             ..default()
         },
         RigidBody::Dynamic,
         Collider::cuboid(1.0, 1.0, 1.0),
+        Grounded::new(2.0, 0.0),
     ));
 
     // Light
