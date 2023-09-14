@@ -16,7 +16,10 @@ impl Plugin for CharacterRotationPlugin {
 fn rotate_character_horizontally(
     mut characters: Query<(&mut Transform, &Character, &CharacterConfig)>,
 ) {
-    for (mut transform, character, config) in characters.iter_mut() {
+    for (mut transform, character, config) in characters
+        .iter_mut()
+        .filter(|(_, character, _)| character.is_active)
+    {
         transform.rotate_local(Quat::from_axis_angle(
             Vec3::Y,
             character.rotation_input.y * config.turn_speed,
@@ -30,10 +33,12 @@ pub fn rotate_character_vertically(
 ) {
     for (mut transform, parent) in head_query.iter_mut() {
         if let Ok((character, config)) = character_query.get(parent.get()) {
-            transform.rotate_local(Quat::from_axis_angle(
-                Vec3::X,
-                character.rotation_input.x * config.turn_speed,
-            ));
+            if character.is_active {
+                transform.rotate_local(Quat::from_axis_angle(
+                    Vec3::X,
+                    character.rotation_input.x * config.turn_speed,
+                ));
+            }
         }
     }
 }

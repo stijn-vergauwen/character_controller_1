@@ -107,8 +107,10 @@ fn spawn_test_character(
         ..default()
     };
 
-    let mut character = Character::default();
-    character.activate();
+    let character = Character {
+        is_active: true,
+        ..default()
+    };
 
     let character_id = spawn_character(
         &mut commands,

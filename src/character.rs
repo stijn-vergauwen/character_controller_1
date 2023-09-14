@@ -46,28 +46,11 @@ impl Plugin for CharacterPlugin {
 pub struct Character {
     pub is_active: bool,
     pub is_running: bool,
-    movement_input: Vec3,
-    rotation_input: Vec3,
+    pub movement_input: Vec3,
+    pub rotation_input: Vec3,
 }
 
 impl Character {
-    // TODO: don't check for is_active when setting input, check it when using those inputs (move checks to movement and rotation)
-    // TODO: since getters and setters will just be passing values, make the fields public and remove these functions
-
-    /// Sets the movement input to the given value, or `Vec3::ZERO` if this character is inactive.
-    pub fn set_movement_input(&mut self, value: Vec3) {
-        self.movement_input = if self.is_active { value } else { Vec3::ZERO };
-    }
-
-    pub fn get_movement_input(&self) -> Vec3 {
-        self.movement_input
-    }
-
-    /// Sets the rotation input to the given value, or `Vec3::ZERO` if this character is inactive.
-    pub fn set_rotation_input(&mut self, value: Vec3) {
-        self.rotation_input = if self.is_active { value } else { Vec3::ZERO };
-    }
-
     pub fn toggle_running(&mut self) {
         self.is_running = !self.is_running;
     }

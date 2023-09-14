@@ -69,7 +69,7 @@ fn update_character_movement_input(
     for (movement, mut character) in character_query.iter_mut() {
         let direction = walk_direction_from_input(&movement.keybinds, &input);
 
-        character.set_movement_input(direction);
+        character.movement_input = direction;
     }
 }
 
@@ -84,7 +84,7 @@ fn update_character_rotation_input(
     let as_rotation = Vec3::new(-sum.y, -sum.x, 0.0);
 
     for mut character in character_query.iter_mut() {
-        character.set_rotation_input(as_rotation);
+        character.rotation_input = as_rotation;
     }
 }
 
