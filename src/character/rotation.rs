@@ -34,10 +34,12 @@ pub fn rotate_character_vertically(
     for (mut transform, parent) in head_query.iter_mut() {
         if let Ok((character, config)) = character_query.get(parent.get()) {
             if character.is_active {
-                transform.rotate_local(Quat::from_axis_angle(
-                    Vec3::X,
-                    character.rotation_input.x * config.turn_speed,
-                ));
+                let vertical_angle = transform.rotation.to_scaled_axis().x;
+                let angle_limit_rad = config.vertical_rotation_limit_degrees.to_radians();
+                let new_angle = (vertical_angle + character.rotation_input.x * config.turn_speed)
+                    .clamp(-angle_limit_rad, angle_limit_rad);
+
+                transform.rotation = Quat::from_axis_angle(Vec3::X, new_angle);
             }
         }
     }

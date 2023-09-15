@@ -7,6 +7,9 @@ pub struct CharacterConfig {
     pub run_speed: f32,
     pub run_strength: f32,
     pub turn_speed: f32,
+
+    /// The max angle the character can look up or down, in degrees.
+    pub vertical_rotation_limit_degrees: f32,
     pub jump_strength: f32,
     pub drag_factor: f32,
 
@@ -46,6 +49,7 @@ impl Default for CharacterConfig {
             jump_strength: 3.5,
             // TODO: make this turn strength value less wierd
             turn_speed: 0.0007,
+            vertical_rotation_limit_degrees: 90.0,
             drag_factor: 0.5,
             aerial_multiplier: 0.5,
         }
