@@ -4,7 +4,7 @@ use bevy::{prelude::*, window};
 use bevy_rapier3d::prelude::*;
 use character_controller_1::{
     character::{
-        camera::build_first_person_camera,
+        camera::build_third_person_camera,
         config::CharacterConfig,
         spawner::{CharacterSpawnSettings, CharacterSpawner},
         Character, CharacterPlugin,
@@ -69,7 +69,7 @@ fn spawn_test_character(
         .spawn_core(&mut commands, character, character_config)
         .add_body(&mut commands, &mut meshes, &mut materials)
         .add_jumping(&mut commands)
-        .add_camera(&mut commands, build_first_person_camera())
+        .add_camera(&mut commands, build_third_person_camera(7.0))
         .add_root_component(
             &mut commands,
             PlayerMovementInput {
