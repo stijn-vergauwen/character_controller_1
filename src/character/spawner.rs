@@ -5,6 +5,14 @@ use crate::grounded::{CheckMethod, Grounded};
 
 use super::{config::CharacterConfig, jump::CharacterJump, Character, CharacterHead};
 
+/*
+    Entity hierarchy:
+    - Character root (character components and rb, on Y: 0)
+        - Character body (capsule with collider)
+        - Character head (cube with collider)
+            - First person camera
+*/
+
 pub struct CharacterSpawnSettings {
     pub color: Color,
 
@@ -12,7 +20,7 @@ pub struct CharacterSpawnSettings {
     pub head_percentage_of_height: f32,
 
     /// The value that the `Name` component of the character root will have
-    pub root_name: String,
+    pub character_name: String,
 
     /// The total size of the character, including the head
     ///
@@ -56,14 +64,6 @@ impl CharacterSpawnSettings {
     }
 }
 
-/*
-    Entity hierarchy:
-    - Character root (character components and rb, on Y: 0)
-        - Character body (capsule with collider)
-        - Character head (cube with collider)
-            - First person camera
-*/
-
 impl Default for CharacterSpawnSettings {
     fn default() -> Self {
         Self {
@@ -71,7 +71,7 @@ impl Default for CharacterSpawnSettings {
             color: Color::CYAN,
             size: Vec2::new(0.8, 2.0),
             head_percentage_of_height: 20.0,
-            root_name: String::from("Default character root"),
+            character_name: String::from("Default character"),
             grounded_height_offset: 0.29,
             grounded_check_method: CheckMethod::Sphere { radius: 0.3 },
             draw_grounded_gizmos: false,
@@ -79,55 +79,136 @@ impl Default for CharacterSpawnSettings {
     }
 }
 
-// TODO: split up into multiple functions, add one's for: grounded + jump, camera
+pub struct CharacterSpawner {
+    spawn_settings: CharacterSpawnSettings,
+    root_id: Option<Entity>,
+    head_id: Option<Entity>,
+}
 
-/// Spawns a character complete with a body, head, rigidbody, colliders, and first-person camera.
-///
-/// Returns the character root entity
-pub fn spawn_character(
-    commands: &mut Commands,
-    meshes: &mut ResMut<Assets<Mesh>>,
-    materials: &mut ResMut<Assets<StandardMaterial>>,
-    character: Character,
-    character_config: CharacterConfig,
-    spawn_settings: &CharacterSpawnSettings,
-) -> Entity {
-    let character_material = build_character_material(materials, spawn_settings);
+impl CharacterSpawner {
+    pub fn new(spawn_settings: CharacterSpawnSettings) -> Self {
+        CharacterSpawner {
+            spawn_settings,
+            root_id: None,
+            head_id: None,
+        }
+    }
 
-    commands
-        .spawn((
-            Name::from(spawn_settings.root_name.clone()),
-            build_rigid_body(character_config.drag_factor),
-            character,
-            character_config,
-            TransformBundle::from_transform(Transform::from_translation(
-                spawn_settings.spawn_position,
-            )),
-            VisibilityBundle::default(),
-            Grounded::new(
-                spawn_settings.grounded_height_offset,
-                spawn_settings.grounded_check_method,
-                spawn_settings.draw_grounded_gizmos,
-            ),
-            CharacterJump::new(),
-        ))
-        .with_children(|root| {
-            // Body
-            root.spawn((
-                Name::from("Character body"),
-                build_character_body(meshes, character_material.clone(), spawn_settings),
-            ));
-
-            // Head
-            root.spawn((
-                Name::from("Character head"),
-                build_character_head(meshes, character_material.clone(), spawn_settings),
+    /// Spawns the core character components.
+    ///
+    /// Sets the `root_id` of this spawner.
+    pub fn spawn_core(
+        &mut self,
+        commands: &mut Commands,
+        character: Character,
+        character_config: CharacterConfig,
+    ) -> &mut Self {
+        let id = commands
+            .spawn((
+                self.build_name_component(String::from("root")),
+                TransformBundle::from_transform(Transform::from_translation(
+                    self.spawn_settings.spawn_position,
+                )),
+                VisibilityBundle::default(),
+                character,
+                character_config,
             ))
-            .with_children(|head| {
-                head.spawn((Name::from("Character camera"), Camera3dBundle::default()));
+            .id();
+
+        self.root_id = Some(id);
+        self
+    }
+
+    /// Spawns the body and head meshes and colliders of the character.
+    ///
+    /// Requires the `root_id` to be set, do this with the `spawn_base` function.
+    pub fn add_body(
+        &mut self,
+        commands: &mut Commands,
+        meshes: &mut ResMut<Assets<Mesh>>,
+        materials: &mut ResMut<Assets<StandardMaterial>>,
+    ) -> &mut Self {
+        if let Some(root_id) = self.root_id {
+            let character_material = build_character_material(materials, &self.spawn_settings);
+
+            commands.entity(root_id).with_children(|root| {
+                // Body
+                root.spawn((
+                    self.build_name_component(String::from("body")),
+                    build_character_body(meshes, character_material.clone(), &self.spawn_settings),
+                ));
+
+                // Head
+                let id = root
+                    .spawn((
+                        self.build_name_component(String::from("head")),
+                        build_character_head(
+                            meshes,
+                            character_material.clone(),
+                            &self.spawn_settings,
+                        ),
+                    ))
+                    .id();
+                self.head_id = Some(id);
             });
-        })
-        .id()
+        }
+        self
+    }
+
+    /// Spawns a dynamic rigidbody on the character root entity.
+    pub fn add_rigid_body(&mut self, commands: &mut Commands, linear_damping: f32) -> &mut Self {
+        if let Some(root_id) = self.root_id {
+            commands
+                .entity(root_id)
+                .insert(build_rigid_body(linear_damping));
+        }
+        self
+    }
+
+    pub fn add_jumping(&mut self, commands: &mut Commands) -> &mut Self {
+        if let Some(root_id) = self.root_id {
+            commands.entity(root_id).insert((
+                Grounded::new(
+                    self.spawn_settings.grounded_height_offset,
+                    self.spawn_settings.grounded_check_method,
+                    self.spawn_settings.draw_grounded_gizmos,
+                ),
+                CharacterJump::new(),
+            ));
+        }
+        self
+    }
+
+    pub fn add_first_person_camera(&mut self, commands: &mut Commands) -> &mut Self {
+        if let Some(head_id) = self.head_id {
+            commands.entity(head_id).with_children(|head| {
+                head.spawn((
+                    self.build_name_component(String::from("first person camera")),
+                    Camera3dBundle::default(),
+                ));
+            });
+        }
+        self
+    }
+
+    /// Adds the given component to the character root entity.
+    pub fn add_root_component<T>(&mut self, commands: &mut Commands, component: T) -> &mut Self
+    where
+        T: Component,
+    {
+        if let Some(root_id) = self.root_id {
+            commands.entity(root_id).insert(component);
+        }
+        self
+    }
+
+    fn build_name_component(&self, suffix: String) -> Name {
+        Name::from(format!(
+            "{} {}",
+            self.spawn_settings.character_name.clone(),
+            suffix
+        ))
+    }
 }
 
 /// Returns a dynamic rigidbody with relevant components for characters

@@ -5,7 +5,7 @@ use bevy_rapier3d::prelude::*;
 use character_controller_1::{
     character::{
         config::CharacterConfig,
-        spawner::{spawn_character, CharacterSpawnSettings},
+        spawner::{CharacterSpawnSettings, CharacterSpawner},
         Character, CharacterPlugin,
     },
     grounded::GroundedPlugin,
@@ -64,17 +64,19 @@ fn spawn_test_character(
         ..default()
     };
 
-    let character_id = spawn_character(
-        &mut commands,
-        &mut meshes,
-        &mut materials,
-        character,
-        character_config,
-        &spawn_settings,
-    );
+    let linear_damping = character_config.drag_factor;
 
-    commands.entity(character_id).insert(PlayerMovementInput {
-        hold_to_run: true,
-        ..default()
-    });
+    CharacterSpawner::new(spawn_settings)
+        .spawn_core(&mut commands, character, character_config)
+        .add_body(&mut commands, &mut meshes, &mut materials)
+        .add_rigid_body(&mut commands, linear_damping)
+        .add_jumping(&mut commands)
+        .add_first_person_camera(&mut commands)
+        .add_root_component(
+            &mut commands,
+            PlayerMovementInput {
+                hold_to_run: true,
+                ..default()
+            },
+        );
 }
