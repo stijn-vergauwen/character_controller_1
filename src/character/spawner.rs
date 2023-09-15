@@ -176,23 +176,21 @@ impl CharacterSpawner {
     /// Spawns a default `Camera3dBundle` component as child entity of the character head.
     ///
     /// Requires the `head_id` to be set, do this with the `add_body` function.
-    pub fn add_first_person_camera(&mut self, commands: &mut Commands) -> &mut Self {
+    pub fn add_camera(&mut self, commands: &mut Commands, component: impl Bundle) -> &mut Self {
         if let Some(head_id) = self.head_id {
             commands.entity(head_id).with_children(|head| {
-                head.spawn((
-                    self.build_name_component(String::from("first person camera")),
-                    Camera3dBundle::default(),
-                ));
+                head.spawn((self.build_name_component(String::from("camera")), component));
             });
         }
         self
     }
 
     /// Adds the given component to the character root entity.
-    pub fn add_root_component<T>(&mut self, commands: &mut Commands, component: T) -> &mut Self
-    where
-        T: Component,
-    {
+    pub fn add_root_component(
+        &mut self,
+        commands: &mut Commands,
+        component: impl Bundle,
+    ) -> &mut Self {
         if let Some(root_id) = self.root_id {
             commands.entity(root_id).insert(component);
         }

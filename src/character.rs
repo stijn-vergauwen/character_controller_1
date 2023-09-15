@@ -4,6 +4,7 @@ pub mod jump;
 mod movement;
 mod rotation;
 pub mod spawner;
+pub mod camera;
 
 use bevy::prelude::*;
 
@@ -30,8 +31,6 @@ impl Plugin for CharacterPlugin {
         ));
     }
 }
-
-// TODO: make character camera it's own component, to allow no cam or third person cam
 
 // TODO: when standing on an object, use it's normal direction to align the characters movement forces
 
