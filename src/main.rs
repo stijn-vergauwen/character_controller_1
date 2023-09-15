@@ -64,12 +64,9 @@ fn spawn_test_character(
         ..default()
     };
 
-    let linear_damping = character_config.drag_factor;
-
     CharacterSpawner::new(spawn_settings)
         .spawn_core(&mut commands, character, character_config)
         .add_body(&mut commands, &mut meshes, &mut materials)
-        .add_rigid_body(&mut commands, linear_damping)
         .add_jumping(&mut commands)
         .add_first_person_camera(&mut commands)
         .add_root_component(

@@ -106,6 +106,7 @@ impl CharacterSpawner {
         let id = commands
             .spawn((
                 self.build_name_component(String::from("root")),
+                build_rigid_body(character_config.drag_factor),
                 TransformBundle::from_transform(Transform::from_translation(
                     self.spawn_settings.spawn_position,
                 )),
@@ -151,16 +152,6 @@ impl CharacterSpawner {
                     .id();
                 self.head_id = Some(id);
             });
-        }
-        self
-    }
-
-    /// Spawns a dynamic rigidbody on the character root entity.
-    pub fn add_rigid_body(&mut self, commands: &mut Commands, linear_damping: f32) -> &mut Self {
-        if let Some(root_id) = self.root_id {
-            commands
-                .entity(root_id)
-                .insert(build_rigid_body(linear_damping));
         }
         self
     }
