@@ -13,6 +13,7 @@ impl Plugin for CharacterMovementPlugin {
             Update,
             (
                 move_character,
+                move_character_with_grounded,
                 limit_character_speed.after(move_character),
                 stop_running_if_no_movement_input,
             ),
@@ -20,7 +21,7 @@ impl Plugin for CharacterMovementPlugin {
     }
 }
 
-fn move_character(
+fn move_character_with_grounded(
     mut characters: Query<(
         &mut ExternalForce,
         &Character,
@@ -38,6 +39,25 @@ fn move_character(
 
         force.force =
             direction * config.get_movement_strength(grounded.is_grounded(), character.is_running);
+    }
+}
+
+// TODO: how would you refactor out the dependency on the Grounded component?
+fn move_character(
+    mut characters: Query<
+        (&mut ExternalForce, &Character, &CharacterConfig, &Transform),
+        Without<Grounded>,
+    >,
+) {
+    for (mut force, character, config, transform) in characters
+        .iter_mut()
+        .filter(|(_, character, _, _)| character.is_active)
+    {
+        // TODO: rotate movement direction by the normal of the current ground object
+        let direction = transform.rotation * character.movement_input;
+        let is_grounded = true;
+
+        force.force = direction * config.get_movement_strength(is_grounded, character.is_running);
     }
 }
 
