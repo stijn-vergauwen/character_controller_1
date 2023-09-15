@@ -156,6 +156,9 @@ impl CharacterSpawner {
         self
     }
 
+    /// Spawns `Grounded` and `CharacterJump` components on the character root entity.
+    ///
+    /// Requires the `root_id` to be set, do this with the `spawn_base` function.
     pub fn add_jumping(&mut self, commands: &mut Commands) -> &mut Self {
         if let Some(root_id) = self.root_id {
             commands.entity(root_id).insert((
@@ -170,6 +173,9 @@ impl CharacterSpawner {
         self
     }
 
+    /// Spawns a default `Camera3dBundle` component as child entity of the character head.
+    ///
+    /// Requires the `head_id` to be set, do this with the `add_body` function.
     pub fn add_first_person_camera(&mut self, commands: &mut Commands) -> &mut Self {
         if let Some(head_id) = self.head_id {
             commands.entity(head_id).with_children(|head| {
@@ -191,6 +197,11 @@ impl CharacterSpawner {
             commands.entity(root_id).insert(component);
         }
         self
+    }
+
+    /// Returns the `root_id` of this character.
+    pub fn id(&self) -> Option<Entity> {
+        self.root_id
     }
 
     fn build_name_component(&self, suffix: String) -> Name {
