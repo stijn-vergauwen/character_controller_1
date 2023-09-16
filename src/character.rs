@@ -5,6 +5,7 @@ mod movement;
 mod rotation;
 pub mod spawner;
 pub mod camera;
+pub mod crouch;
 
 use bevy::prelude::*;
 
@@ -71,3 +72,6 @@ impl Default for Character {
 
 #[derive(Component)]
 pub struct CharacterHead;
+
+#[derive(Component)]
+pub struct CharacterBody;

@@ -3,7 +3,9 @@ use bevy_rapier3d::prelude::*;
 
 use crate::grounded::{CheckMethod, Grounded};
 
-use super::{config::CharacterConfig, jump::CharacterJump, Character, CharacterHead};
+use super::{
+    config::CharacterConfig, jump::CharacterJump, Character, CharacterBody, CharacterHead,
+};
 
 /*
     Entity hierarchy:
@@ -72,7 +74,7 @@ impl CharacterSpawnSettings {
     }
 
     /// Returns the height that the straight section of the character's body will have.
-    /// 
+    ///
     /// This straight section is the middle cylinder part of the capsule shape.
     fn straight_height(&self) -> f32 {
         self.body_height() - self.size.x
@@ -263,7 +265,7 @@ fn build_character_body(
     meshes: &mut ResMut<Assets<Mesh>>,
     material_handle: Handle<StandardMaterial>,
     spawn_settings: &CharacterSpawnSettings,
-) -> (PbrBundle, Collider, Friction) {
+) -> (PbrBundle, Collider, Friction, CharacterBody) {
     (
         PbrBundle {
             mesh: meshes.add(
@@ -283,6 +285,7 @@ fn build_character_body(
             spawn_settings.radius(),
         ),
         Friction::coefficient(spawn_settings.friction),
+        CharacterBody,
     )
 }
 

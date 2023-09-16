@@ -50,8 +50,8 @@ fn spawn_test_character(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     let spawn_settings = CharacterSpawnSettings {
-        spawn_position: Vec3::new(-1.0, 5.0, 0.0),
-        draw_grounded_gizmos: true,
+        spawn_position: Vec3::new(0.0, 2.0, 0.0),
+        draw_grounded_gizmos: false,
         ..default()
     };
 
@@ -60,10 +60,7 @@ fn spawn_test_character(
         ..default()
     };
 
-    let character_config = CharacterConfig {
-        aerial_multiplier: 0.2,
-        ..default()
-    };
+    let character_config = CharacterConfig { ..default() };
 
     CharacterSpawner::new(spawn_settings)
         .spawn_core(&mut commands, character, character_config)
