@@ -75,7 +75,7 @@ fn update_grounded(
             CheckMethod::Sphere { radius } => {
                 check_sphere_hit(&rapier_context, cast_info, radius, filter)
             }
-        }
+        };
     }
 }
 

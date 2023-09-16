@@ -13,6 +13,7 @@ use super::{config::CharacterConfig, jump::CharacterJump, Character, CharacterHe
             - First person camera
 */
 
+// TODO: replace this one big settings struct with the separate components for grounded, drag, friction.
 pub struct CharacterSpawnSettings {
     pub color: Color,
 
@@ -24,14 +25,29 @@ pub struct CharacterSpawnSettings {
 
     /// The total size of the character, including the head
     ///
-    /// NOTE: height needs to be large enough that `straight_height()` returns a value >= 0
+    /// * Note: height needs to be large enough that `straight_height()` returns a value >= 0
     pub size: Vec2,
 
+    /// The spawn position for the root of the character.
+    ///
+    /// * Note: the character root is positioned at ground height. So if your ground is at Y=0, setting `spawn_position` to Y=0 spawns the character on the ground.
     pub spawn_position: Vec3,
 
     pub grounded_height_offset: f32,
     pub grounded_check_method: CheckMethod,
+
+    /// If gizmos should be drawn to show the shape or ray used for checking if the character is grounded.
+    ///
+    /// Useful when tuning the grounded behaviour
     pub draw_grounded_gizmos: bool,
+
+    /// The amount of drag or air resistance this character will experience.
+    ///
+    /// This is the value that the rigidbody's `linear_damping` will be set to.
+    pub drag: f32,
+
+    /// The amount of friction the body collider will have.
+    pub friction: f32,
 }
 
 impl CharacterSpawnSettings {
@@ -55,6 +71,9 @@ impl CharacterSpawnSettings {
         self.half_body_width()
     }
 
+    /// Returns the height that the straight section of the character's body will have.
+    /// 
+    /// This straight section is the middle cylinder part of the capsule shape.
     fn straight_height(&self) -> f32 {
         self.body_height() - self.size.x
     }
@@ -72,9 +91,11 @@ impl Default for CharacterSpawnSettings {
             size: Vec2::new(0.8, 2.0),
             head_percentage_of_height: 20.0,
             character_name: String::from("Default character"),
-            grounded_height_offset: 0.29,
+            grounded_height_offset: 0.26,
             grounded_check_method: CheckMethod::Sphere { radius: 0.3 },
             draw_grounded_gizmos: false,
+            drag: 0.5,
+            friction: 0.3,
         }
     }
 }
@@ -106,7 +127,7 @@ impl CharacterSpawner {
         let id = commands
             .spawn((
                 self.build_name_component(String::from("root")),
-                build_rigid_body(character_config.drag_factor),
+                build_rigid_body(self.spawn_settings.drag),
                 TransformBundle::from_transform(Transform::from_translation(
                     self.spawn_settings.spawn_position,
                 )),
@@ -242,7 +263,7 @@ fn build_character_body(
     meshes: &mut ResMut<Assets<Mesh>>,
     material_handle: Handle<StandardMaterial>,
     spawn_settings: &CharacterSpawnSettings,
-) -> (PbrBundle, Collider) {
+) -> (PbrBundle, Collider, Friction) {
     (
         PbrBundle {
             mesh: meshes.add(
@@ -261,6 +282,7 @@ fn build_character_body(
             spawn_settings.straight_height() / 2.0,
             spawn_settings.radius(),
         ),
+        Friction::coefficient(spawn_settings.friction),
     )
 }
 
