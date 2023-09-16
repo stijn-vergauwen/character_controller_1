@@ -1,16 +1,17 @@
+pub mod camera;
 pub mod config;
+pub mod crouch;
 mod interaction;
 pub mod jump;
 mod movement;
 mod rotation;
 pub mod spawner;
-pub mod camera;
-pub mod crouch;
 
 use bevy::prelude::*;
 
 use self::{
-    jump::CharacterJumpPlugin, movement::CharacterMovementPlugin, rotation::CharacterRotationPlugin,
+    crouch::CharacterCrouchPlugin, jump::CharacterJumpPlugin, movement::CharacterMovementPlugin,
+    rotation::CharacterRotationPlugin,
 };
 
 /*
@@ -29,6 +30,7 @@ impl Plugin for CharacterPlugin {
             CharacterMovementPlugin,
             CharacterRotationPlugin,
             CharacterJumpPlugin,
+            CharacterCrouchPlugin,
         ));
     }
 }

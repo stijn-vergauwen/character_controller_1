@@ -28,11 +28,11 @@ fn rotate_character_horizontally(
 }
 
 pub fn rotate_character_vertically(
-    mut head_query: Query<(&mut Transform, &Parent), With<CharacterHead>>,
-    character_query: Query<(&Character, &CharacterConfig)>,
+    mut character_heads: Query<(&mut Transform, &Parent), With<CharacterHead>>,
+    characters: Query<(&Character, &CharacterConfig)>,
 ) {
-    for (mut transform, parent) in head_query.iter_mut() {
-        if let Ok((character, config)) = character_query.get(parent.get()) {
+    for (mut transform, parent) in character_heads.iter_mut() {
+        if let Ok((character, config)) = characters.get(parent.get()) {
             if character.is_active {
                 let vertical_angle = transform.rotation.to_scaled_axis().x;
                 let angle_limit_rad = config.vertical_rotation_limit_degrees.to_radians();

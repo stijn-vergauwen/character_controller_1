@@ -6,6 +6,7 @@ use character_controller_1::{
     character::{
         camera::build_third_person_camera,
         config::CharacterConfig,
+        crouch::CharacterCrouch,
         spawner::{CharacterSpawnSettings, CharacterSpawner},
         Character, CharacterPlugin,
     },
@@ -73,5 +74,6 @@ fn spawn_test_character(
                 hold_to_run: true,
                 ..default()
             },
-        );
+        )
+        .add_root_component(&mut commands, CharacterCrouch::new());
 }

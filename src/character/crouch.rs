@@ -1,7 +1,5 @@
 use bevy::prelude::*;
 
-use super::CharacterBody;
-
 pub struct CharacterCrouchPlugin;
 
 impl Plugin for CharacterCrouchPlugin {
@@ -16,17 +14,32 @@ pub struct CharacterCrouch {
     crouching: bool,
 }
 
-fn update_crouch(
-    characters: Query<&CharacterCrouch>,
-    mut character_bodies: Query<(&mut CharacterBody, &Parent)>,
-) {
-    // for (body, parent) in characters.iter() {
-    //     if let Ok(body) = character_bodies.get(children.ite) {
+impl CharacterCrouch {
+    pub fn new() -> Self {
+        Self {
+            has_crouch_input: false,
+            crouching: false,
+        }
+    }
 
-    //     }
-    // }
+    /// Toggles the `has_crouch_input` field and returns the new value
+    pub fn toggle_crouch_input(&mut self) -> bool {
+        self.has_crouch_input = !self.has_crouch_input;
+        self.has_crouch_input
+    }
+}
 
+fn update_crouch(mut characters: Query<&mut CharacterCrouch>) {
     // TODO: update the crouching variable
+
+    for mut crouch in characters.iter_mut() {
+        crouch.crouching = crouch.has_crouch_input;
+
+        println!(
+            "Character is {}crouching",
+            if crouch.crouching { "" } else { "not " }
+        );
+    }
 }
 
 fn update_body_height() {
