@@ -21,6 +21,8 @@ impl Plugin for CharacterMovementPlugin {
     }
 }
 
+// TODO: disable jump when crouching
+
 fn move_character_with_grounded(
     mut characters: Query<(
         &mut ExternalForce,
