@@ -11,6 +11,9 @@ impl Plugin for CharacterCrouchPlugin {
     }
 }
 
+// TODO: add heights for crouching and not crouching, for systems to use as target heights
+// TODO: Lerp between heights instead of snapping
+
 #[derive(Component)]
 pub struct CharacterCrouch {
     pub has_crouch_input: bool,
@@ -45,30 +48,41 @@ fn update_crouch(mut characters: Query<&mut CharacterCrouch>) {
 
 fn update_body_height(
     characters: Query<&CharacterCrouch>,
-    mut character_bodies: Query<(&mut Collider, &Handle<Mesh>, &Parent), With<CharacterBody>>,
+    mut character_bodies: Query<
+        (&mut Collider, &mut Transform, &Handle<Mesh>, &Parent),
+        With<CharacterBody>,
+    >,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
-    for (mut collider, mesh_handle, parent) in character_bodies.iter_mut() {
+    for (mut collider, mut transform, mesh_handle, parent) in character_bodies.iter_mut() {
+        // TODO: smooth out crouch transition
+        // TODO: only apply updates when something changed
+
         if let Ok(crouch) = characters.get(parent.get()) {
             let target_body_height = match crouch.crouching {
                 true => 0.0,
                 false => 0.8,
             };
 
-            if let Some(mesh) = meshes.get_mut(mesh_handle) {
-                *mesh = shape::Capsule {
-                    depth: target_body_height,
-                    radius: 0.4,
-                    ..default()
-                }
-                .into();
-            }
+            let current_y = transform.translation.y;
+            let target_y = 1.2 - target_body_height / 2.0;
 
-            if let Some(mut capsule) = collider.as_capsule_mut() {
-                capsule.set_segment(
-                    Vec3::NEG_Y * target_body_height / 2.0,
-                    Vec3::Y * target_body_height / 2.0,
-                );
+            if current_y != target_y {
+                transform.translation.y = target_y;
+                println!("Height: {}", transform.translation.y);
+
+                if let Some(mesh) = meshes.get_mut(mesh_handle) {
+                    *mesh = shape::Capsule {
+                        depth: target_body_height,
+                        radius: 0.4,
+                        ..default()
+                    }
+                    .into();
+                }
+
+                if let Some(mut capsule) = collider.as_capsule_mut() {
+                    capsule.set_segment(Vec3::NEG_Y * (target_body_height - 0.4), Vec3::Y * 0.4);
+                }
             }
         }
     }
