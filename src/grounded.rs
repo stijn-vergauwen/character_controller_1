@@ -5,7 +5,14 @@ pub struct GroundedPlugin;
 
 impl Plugin for GroundedPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (update_grounded, draw_grounded_check_gizmos));
+        app.add_systems(
+            Update,
+            (
+                update_grounded,
+                draw_grounded_check_gizmos,
+                draw_ground_normal_gizmos,
+            ),
+        );
     }
 }
 
@@ -52,7 +59,12 @@ struct CastInfo {
 }
 
 impl CastInfo {
-    fn from_translation(translation: Vec3, direction: Vec3, height_offset: f32, method: CheckMethod) -> Self {
+    fn from_translation(
+        translation: Vec3,
+        direction: Vec3,
+        height_offset: f32,
+        method: CheckMethod,
+    ) -> Self {
         Self {
             origin: translation + Vec3::Y * height_offset,
             direction,
@@ -74,69 +86,78 @@ fn update_grounded(
         );
         let filter = QueryFilter::default().exclude_rigid_body(entity);
 
-        let collision_check_result = do_collision_check(&rapier_context, cast_info, filter);
+        let cast_result = get_normal_from_cast(&rapier_context, &cast_info, filter);
 
-        grounded.is_grounded = collision_check_result.is_some();
-        grounded.ground_normal = collision_check_result;
+        grounded.is_grounded = cast_result.is_some();
+        grounded.ground_normal = cast_result;
 
-        if let Some(normal) = collision_check_result {
+        if let Some(normal) = cast_result {
             println!("Ground normal: {}", normal);
         }
     }
 }
 
-fn do_collision_check(
-    rapier_context: &Res<RapierContext>,
-    cast_info: CastInfo,
+fn get_normal_from_cast(
+    rapier_context: &RapierContext,
+    cast_info: &CastInfo,
     filter: QueryFilter,
 ) -> Option<Vec3> {
     match cast_info.method {
         CheckMethod::Ray { distance } => {
-            check_ray_hit(&rapier_context, cast_info, distance, filter)
+            check_ray_hit_normal(&rapier_context, cast_info, distance, filter)
         }
         CheckMethod::Sphere { radius } => {
-            check_sphere_hit(&rapier_context, cast_info, radius, filter)
+            if check_sphere_hit(&rapier_context, cast_info, radius, filter) {
+                // This way of getting the normal & hard setting the distance to 10 is not ideal, but I don't expect it to cause problems.
+                check_ray_hit_normal(rapier_context, cast_info, 10.0, filter)
+            } else {
+                None
+            }
         }
     }
 }
 
-fn check_ray_hit(
-    rapier_context: &Res<RapierContext>,
-    cast_info: CastInfo,
+fn check_ray_hit_normal(
+    rapier_context: &RapierContext,
+    cast_info: &CastInfo,
     distance: f32,
     filter: QueryFilter,
 ) -> Option<Vec3> {
-    rapier_context.cast_ray_and_get_normal(
-        cast_info.origin,
-        cast_info.direction,
-        distance,
-        true,
-        filter,
-    ).and_then(|hit| Some(hit.1.normal))
+    rapier_context
+        .cast_ray_and_get_normal(
+            cast_info.origin,
+            cast_info.direction,
+            distance,
+            true,
+            filter,
+        )
+        .and_then(|hit| Some(hit.1.normal))
 }
 
 fn check_sphere_hit(
-    rapier_context: &Res<RapierContext>,
-    cast_info: CastInfo,
+    rapier_context: &RapierContext,
+    cast_info: &CastInfo,
     radius: f32,
     filter: QueryFilter,
-) -> Option<Vec3> {
-    rapier_context.cast_shape(
-        cast_info.origin,
-        Quat::IDENTITY,
-        cast_info.direction,
-        &Collider::ball(radius),
-        0.0,
-        filter,
-    ).and_then(|hit| Some(hit.1.normal1))
+) -> bool {
+    rapier_context
+        .cast_shape(
+            cast_info.origin,
+            Quat::IDENTITY,
+            cast_info.direction,
+            &Collider::ball(radius),
+            0.0,
+            filter,
+        )
+        .is_some()
 }
 
 fn draw_grounded_check_gizmos(
-    mut grounded_components: Query<(&mut Grounded, &GlobalTransform)>,
+    grounded_components: Query<(&Grounded, &GlobalTransform)>,
     mut gizmos: Gizmos,
 ) {
     for (grounded, global_transform) in grounded_components
-        .iter_mut()
+        .iter()
         .filter(|(grounded, _)| grounded.draw_gizmos)
     {
         let cast_info = CastInfo::from_translation(
@@ -158,5 +179,22 @@ fn draw_grounded_check_gizmos(
                 gizmos.sphere(cast_info.origin, Quat::IDENTITY, radius, Color::BLUE);
             }
         };
+    }
+}
+
+fn draw_ground_normal_gizmos(
+    grounded_components: Query<(&Grounded, &GlobalTransform)>,
+    mut gizmos: Gizmos,
+) {
+    for (grounded, global_transform) in grounded_components
+        .iter()
+        .filter(|(grounded, _)| grounded.draw_gizmos)
+    {
+        if let Some(normal) = grounded.ground_normal {
+            let position = global_transform.translation();
+
+            gizmos.circle(position, normal, 1.0, Color::LIME_GREEN);
+            gizmos.ray(position, normal * 3.0, Color::LIME_GREEN);
+        }
     }
 }
