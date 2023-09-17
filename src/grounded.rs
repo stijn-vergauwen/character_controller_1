@@ -15,6 +15,8 @@ impl Plugin for GroundedPlugin {
 #[derive(Component)]
 pub struct Grounded {
     is_grounded: bool,
+    /// The normal direction of the ground if grounded, or none.
+    ground_normal: Option<Vec3>,
     /// The amount that the height of the cast origin will be offsetted, use to finetune position.
     height_offset: f32,
     check_method: CheckMethod,
@@ -25,6 +27,7 @@ impl Grounded {
     pub fn new(height_offset: f32, check_method: CheckMethod, draw_gizmos: bool) -> Self {
         Self {
             is_grounded: false,
+            ground_normal: None,
             height_offset,
             check_method,
             draw_gizmos,
@@ -45,13 +48,15 @@ pub enum CheckMethod {
 struct CastInfo {
     origin: Vec3,
     direction: Vec3,
+    method: CheckMethod,
 }
 
 impl CastInfo {
-    fn from_translation(translation: Vec3, direction: Vec3, height_offset: f32) -> Self {
+    fn from_translation(translation: Vec3, direction: Vec3, height_offset: f32, method: CheckMethod) -> Self {
         Self {
             origin: translation + Vec3::Y * height_offset,
             direction,
+            method,
         }
     }
 }
@@ -65,17 +70,33 @@ fn update_grounded(
             global_transform.translation(),
             Vec3::NEG_Y,
             grounded.height_offset,
+            grounded.check_method,
         );
         let filter = QueryFilter::default().exclude_rigid_body(entity);
 
-        grounded.is_grounded = match grounded.check_method {
-            CheckMethod::Ray { distance } => {
-                check_ray_hit(&rapier_context, cast_info, distance, filter)
-            }
-            CheckMethod::Sphere { radius } => {
-                check_sphere_hit(&rapier_context, cast_info, radius, filter)
-            }
-        };
+        let collision_check_result = do_collision_check(&rapier_context, cast_info, filter);
+
+        grounded.is_grounded = collision_check_result.is_some();
+        grounded.ground_normal = collision_check_result;
+
+        if let Some(normal) = collision_check_result {
+            println!("Ground normal: {}", normal);
+        }
+    }
+}
+
+fn do_collision_check(
+    rapier_context: &Res<RapierContext>,
+    cast_info: CastInfo,
+    filter: QueryFilter,
+) -> Option<Vec3> {
+    match cast_info.method {
+        CheckMethod::Ray { distance } => {
+            check_ray_hit(&rapier_context, cast_info, distance, filter)
+        }
+        CheckMethod::Sphere { radius } => {
+            check_sphere_hit(&rapier_context, cast_info, radius, filter)
+        }
     }
 }
 
@@ -84,16 +105,14 @@ fn check_ray_hit(
     cast_info: CastInfo,
     distance: f32,
     filter: QueryFilter,
-) -> bool {
-    rapier_context
-        .cast_ray(
-            cast_info.origin,
-            cast_info.direction,
-            distance,
-            true,
-            filter,
-        )
-        .is_some()
+) -> Option<Vec3> {
+    rapier_context.cast_ray_and_get_normal(
+        cast_info.origin,
+        cast_info.direction,
+        distance,
+        true,
+        filter,
+    ).and_then(|hit| Some(hit.1.normal))
 }
 
 fn check_sphere_hit(
@@ -101,17 +120,15 @@ fn check_sphere_hit(
     cast_info: CastInfo,
     radius: f32,
     filter: QueryFilter,
-) -> bool {
-    rapier_context
-        .cast_shape(
-            cast_info.origin,
-            Quat::IDENTITY,
-            cast_info.direction,
-            &Collider::ball(radius),
-            0.0,
-            filter,
-        )
-        .is_some()
+) -> Option<Vec3> {
+    rapier_context.cast_shape(
+        cast_info.origin,
+        Quat::IDENTITY,
+        cast_info.direction,
+        &Collider::ball(radius),
+        0.0,
+        filter,
+    ).and_then(|hit| Some(hit.1.normal1))
 }
 
 fn draw_grounded_check_gizmos(
@@ -126,9 +143,10 @@ fn draw_grounded_check_gizmos(
             global_transform.translation(),
             Vec3::NEG_Y,
             grounded.height_offset,
+            grounded.check_method,
         );
 
-        match grounded.check_method {
+        match cast_info.method {
             CheckMethod::Ray { distance } => {
                 gizmos.ray(
                     cast_info.origin,

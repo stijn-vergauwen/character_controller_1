@@ -10,7 +10,7 @@ use character_controller_1::{
         spawner::{CharacterSpawnSettings, CharacterSpawner},
         Character, CharacterPlugin,
     },
-    grounded::GroundedPlugin,
+    grounded::{GroundedPlugin, CheckMethod},
     player_movement_input::{PlayerMovementInput, PlayerMovementInputPlugin},
 };
 use world::WorldPlugin;
@@ -52,7 +52,9 @@ fn spawn_test_character(
 ) {
     let spawn_settings = CharacterSpawnSettings {
         spawn_position: Vec3::new(0.0, 2.0, 0.0),
-        draw_grounded_gizmos: false,
+        grounded_check_method: CheckMethod::Ray { distance: 0.3 },
+        grounded_height_offset: 0.1,
+        draw_grounded_gizmos: true,
         ..default()
     };
 
