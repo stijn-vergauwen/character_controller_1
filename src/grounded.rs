@@ -44,6 +44,10 @@ impl Grounded {
     pub fn is_grounded(&self) -> bool {
         self.is_grounded
     }
+
+    pub fn ground_normal(&self) -> Option<Vec3> {
+        self.ground_normal
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -193,7 +197,7 @@ fn draw_ground_normal_gizmos(
         if let Some(normal) = grounded.ground_normal {
             let position = global_transform.translation();
 
-            gizmos.circle(position, normal, 1.0, Color::LIME_GREEN);
+            gizmos.circle(position, normal, 0.6, Color::LIME_GREEN);
             gizmos.ray(position, normal * 3.0, Color::LIME_GREEN);
         }
     }
