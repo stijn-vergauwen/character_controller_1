@@ -11,8 +11,8 @@ impl Plugin for CharacterCrouchPlugin {
     }
 }
 
-// TODO: add heights for crouching and not crouching, for systems to use as target heights
-// TODO: Lerp between heights instead of snapping <- doing
+// TODO: add config parameters, like start and end height, speed. Remove all magic numbers
+// TODO: Current behaviour doesn't work with physics engine, try keeping the bottom part at the same spot and moving the head down instead, maybe rebuild the head collider so it's position is at transform?
 
 #[derive(Component)]
 pub struct CharacterCrouch {
@@ -40,7 +40,7 @@ impl CharacterCrouch {
 fn update_crouch(mut characters: Query<&mut CharacterCrouch>, time: Res<Time>) {
     for mut crouch in characters.iter_mut() {
 
-        let lerp_change_per_second = 0.8;
+        let lerp_change_per_second = 6.0;
         let delta_lerp = match crouch.has_crouch_input {
             true => lerp_change_per_second * time.delta_seconds(),
             false => -lerp_change_per_second * time.delta_seconds(),
@@ -65,13 +65,8 @@ fn update_body_height(
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
     for (mut collider, mut transform, mesh_handle, parent) in character_bodies.iter_mut() {
-        // TODO: smooth out crouch transition <- doing
-
         if let Ok(crouch) = characters.get(parent.get()) {
-            let target_body_height = match crouch.crouching {
-                true => 0.0,
-                false => 0.8,
-            };
+            let target_body_height = lerp(0.8, 0.4, crouch.lerp_value);
 
             let current_y = transform.translation.y;
             let target_y = 1.2 - target_body_height / 2.0;
@@ -95,4 +90,8 @@ fn update_body_height(
             }
         }
     }
+}
+
+fn lerp(start: f32, end: f32, value: f32) -> f32 {
+    start + (end - start) * value
 }
