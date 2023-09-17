@@ -12,12 +12,13 @@ impl Plugin for CharacterCrouchPlugin {
 }
 
 // TODO: add heights for crouching and not crouching, for systems to use as target heights
-// TODO: Lerp between heights instead of snapping
+// TODO: Lerp between heights instead of snapping <- doing
 
 #[derive(Component)]
 pub struct CharacterCrouch {
     pub has_crouch_input: bool,
     crouching: bool,
+    lerp_value: f32,
 }
 
 impl CharacterCrouch {
@@ -25,6 +26,7 @@ impl CharacterCrouch {
         Self {
             has_crouch_input: false,
             crouching: false,
+            lerp_value: 0.0,
         }
     }
 
@@ -35,13 +37,21 @@ impl CharacterCrouch {
     }
 }
 
-fn update_crouch(mut characters: Query<&mut CharacterCrouch>) {
+fn update_crouch(mut characters: Query<&mut CharacterCrouch>, time: Res<Time>) {
     for mut crouch in characters.iter_mut() {
-        crouch.crouching = crouch.has_crouch_input;
+
+        let lerp_change_per_second = 0.8;
+        let delta_lerp = match crouch.has_crouch_input {
+            true => lerp_change_per_second * time.delta_seconds(),
+            false => -lerp_change_per_second * time.delta_seconds(),
+        };
+
+        crouch.lerp_value = (crouch.lerp_value + delta_lerp).clamp(0.0, 1.0);
+        crouch.crouching = crouch.lerp_value > 0.0;
 
         println!(
-            "Character is {}crouching",
-            if crouch.crouching { "" } else { "not " }
+            "Crouching {}%",
+            crouch.lerp_value * 100.0
         );
     }
 }
@@ -55,8 +65,7 @@ fn update_body_height(
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
     for (mut collider, mut transform, mesh_handle, parent) in character_bodies.iter_mut() {
-        // TODO: smooth out crouch transition
-        // TODO: only apply updates when something changed
+        // TODO: smooth out crouch transition <- doing
 
         if let Ok(crouch) = characters.get(parent.get()) {
             let target_body_height = match crouch.crouching {
