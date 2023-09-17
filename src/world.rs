@@ -10,7 +10,13 @@ impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Startup,
-            (spawn_static_objects, spawn_light, spawn_cubes, spawn_slopes),
+            (
+                spawn_static_objects,
+                spawn_light,
+                spawn_cubes,
+                spawn_slopes,
+                spawn_sphere,
+            ),
         );
     }
 }
@@ -134,6 +140,29 @@ fn spawn_slopes(
     }
 }
 
+fn spawn_sphere(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let radius = 10.0;
+    let position = Vec3::new(-5.0, -9.0, -3.0);
+
+    let mesh_handle = build_sphere_mesh(&mut meshes, radius);
+    let material_handle = build_material(&mut materials, Color::AQUAMARINE);
+
+    commands.spawn((
+        Name::from("Sphere inside ground"),
+        PbrBundle {
+            mesh: mesh_handle,
+            material: material_handle,
+            transform: Transform::from_translation(position),
+            ..default()
+        },
+        Collider::ball(radius),
+    ));
+}
+
 fn random_vec3() -> Vec3 {
     let mut rng = thread_rng();
     Vec3 {
@@ -149,6 +178,16 @@ fn build_cube_mesh(meshes: &mut ResMut<Assets<Mesh>>, size: f32) -> Handle<Mesh>
 
 fn build_rectangle_mesh(meshes: &mut ResMut<Assets<Mesh>>, size: Vec3) -> Handle<Mesh> {
     meshes.add(shape::Box::new(size.x, size.y, size.z).into())
+}
+
+fn build_sphere_mesh(meshes: &mut ResMut<Assets<Mesh>>, radius: f32) -> Handle<Mesh> {
+    meshes.add(
+        shape::UVSphere {
+            radius,
+            ..default()
+        }
+        .into(),
+    )
 }
 
 fn build_material(
