@@ -28,6 +28,8 @@ impl Plugin for CharacterMovementPlugin {
 // TODO: disable jump when crouching
 // TODO: Make grounded component optional to work for characters without it
 
+// TODO: make this the movement target, not the actual force
+
 fn update_movement_force(
     mut characters: Query<(&mut Character, &CharacterConfig, &Transform, &Grounded)>,
 ) {
@@ -51,17 +53,26 @@ fn update_movement_force(
     }
 }
 
+// TODO: rename corrective force to movement force
+
 fn update_corrective_force(mut characters: Query<(&mut Character, &Velocity, &Grounded)>) {
     for (mut character, velocity, grounded) in characters
         .iter_mut()
         .filter(|(character, _, _)| character.is_active)
     {
 
-        // TODO: move this into character config
-        let strength = 1.0;
+        // TODO: use walk & run strengths for this
+        let strength = 7.0;
 
         character.corrective_force = match grounded.is_grounded() {
-            true => (character.movement_force - velocity.linvel) * strength,
+            true => {
+                let delta = character.movement_force - velocity.linvel;
+                if delta.length() > 0.00001 {
+                    delta.normalize_or_zero() * strength
+                } else {
+                    Vec3::ZERO
+                }
+            },
             false => Vec3::ZERO,
         };
     }
@@ -72,7 +83,7 @@ fn move_character(mut characters: Query<(&Character, &mut ExternalForce)>) {
         .iter_mut()
         .filter(|(character, _)| character.is_active)
     {
-        force.force = character.movement_force + character.corrective_force;
+        force.force = character.corrective_force;
     }
 }
 

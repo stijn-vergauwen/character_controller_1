@@ -35,7 +35,7 @@ impl Plugin for CharacterPlugin {
     }
 }
 
-// TODO: add a correcting force that pushes the character velocity to it's move input
+// TODO: prevent sliding when idle on a slope. either snap transform back to prev position or try putting the rigidbody to sleep
 
 /// The main character component, holds state and current inputs.
 ///
