@@ -15,6 +15,7 @@ impl Plugin for CharacterMovementPlugin {
                 move_character,
                 limit_character_speed.after(move_character),
                 stop_running_if_no_movement_input,
+                draw_gizmos,
             ),
         );
     }
@@ -31,7 +32,6 @@ fn move_character(
         &Transform,
         &Grounded,
     )>,
-    mut gizmos: Gizmos,
 ) {
     for (mut force, character, config, transform, grounded) in characters
         .iter_mut()
@@ -47,11 +47,6 @@ fn move_character(
             transform.rotation,
             character.movement_input,
         );
-
-        // TODO: split out gizmo drawing
-
-        // Draw direction of movement force
-        gizmos.ray(transform.translation, input_direction * 2.0, Color::FUCHSIA);
 
         // TODO: don't write result to force.force, store it in character instead.
 
@@ -88,6 +83,24 @@ fn stop_running_if_no_movement_input(mut characters: Query<&mut Character>) {
         .filter(|character| character.is_running && character.movement_input == Vec3::ZERO)
     {
         character.toggle_running();
+    }
+}
+
+// Gizmos
+
+fn draw_gizmos(characters: Query<(&Character, &GlobalTransform, &Velocity)>, mut gizmos: Gizmos) {
+    let current_velocity_color = Color::CYAN;
+    // let target_velocity_color = Color::FUCHSIA;
+    let length = 2.0;
+
+    for (character, global_transform, velocity) in characters.iter() {
+        let position = global_transform.translation();
+
+        gizmos.ray(
+            position,
+            velocity.linvel.normalize_or_zero() * length,
+            current_velocity_color,
+        );
     }
 }
 
