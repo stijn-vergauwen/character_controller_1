@@ -57,8 +57,12 @@ fn update_corrective_force(mut characters: Query<(&mut Character, &Velocity, &Gr
         .iter_mut()
         .filter(|(character, _, _)| character.is_active)
     {
+
+        // TODO: move this into character config
+        let strength = 1.0;
+
         character.corrective_force = match grounded.is_grounded() {
-            true => character.movement_force - velocity.linvel,
+            true => (character.movement_force - velocity.linvel) * strength,
             false => Vec3::ZERO,
         };
     }
@@ -69,7 +73,7 @@ fn move_character(mut characters: Query<(&Character, &mut ExternalForce)>) {
         .iter_mut()
         .filter(|(character, _)| character.is_active)
     {
-        force.force = character.movement_force;
+        force.force = character.movement_force + character.corrective_force;
     }
 }
 
