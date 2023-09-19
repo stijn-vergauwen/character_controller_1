@@ -12,20 +12,18 @@ impl Plugin for CharacterMovementPlugin {
         app.add_systems(
             Update,
             (
-                // move_character,
-                move_character_with_grounded,
-                limit_character_speed.after(move_character_with_grounded),
+                move_character,
+                limit_character_speed.after(move_character),
                 stop_running_if_no_movement_input,
-                // draw_direction_gizmos,
             ),
         );
     }
 }
 
 // TODO: disable jump when crouching
-// TODO: Make grounded component optional to account for characters without it
+// TODO: Make grounded component optional to work for characters without it
 
-fn move_character_with_grounded(
+fn move_character(
     mut characters: Query<(
         &mut ExternalForce,
         &Character,
@@ -39,8 +37,10 @@ fn move_character_with_grounded(
         .iter_mut()
         .filter(|(_, character, _, _, _)| character.is_active)
     {
-        // TODO: rotate movement direction by the normal of the current ground object <- doing
         let mut direction = character.movement_input;
+
+        // TODO: fix movement input not being aligned with character transform when 'ground_normal()' return none.
+        //       (tranform.rotation * movement_input happens only in ground normal calculations)
 
         if let Some(ground_normal) = grounded.ground_normal() {
             let delta_rotation = calculate_rotation_to_ground_normal(
@@ -50,21 +50,20 @@ fn move_character_with_grounded(
                 ground_normal,
             );
 
-            // Draw delta rotation
-            // draw_axis_gizmos(&mut gizmos, transform.translation + Vec3::Y * 2.0, delta_rotation, 2.0);
-
             direction = delta_rotation * direction;
         }
 
         // Draw direction of movement force
         gizmos.ray(transform.translation, direction * 2.0, Color::FUCHSIA);
 
+        // TODO: don't write result to force.force, store it in character instead.
+
         force.force =
             direction * config.get_movement_strength(grounded.is_grounded(), character.is_running);
     }
 }
 
-// TODO: this system is probably redundant once the character's 'active correcting force' is implemented
+// TODO: can probably be removed once the character's 'active correcting force' is implemented
 fn limit_character_speed(mut characters: Query<(&mut Velocity, &Character, &CharacterConfig)>) {
     for (mut velocity, character, config) in
         characters
@@ -95,25 +94,6 @@ fn stop_running_if_no_movement_input(mut characters: Query<&mut Character>) {
     }
 }
 
-// fn draw_direction_gizmos(
-//     characters: Query<(&Character, &GlobalTransform, &Grounded)>,
-//     mut gizmos: Gizmos,
-// ) {
-//     for (character, global_transform, grounded) in characters.iter() {
-//         let transform = global_transform.compute_transform();
-
-//         let mut direction = transform.rotation * character.movement_input;
-
-//         if let Some(ground_normal) = grounded.ground_normal() {
-//             let delta_rotation =
-//                 calculate_rotation_to_ground_normal(transform.rotation, ground_normal);
-//             direction = delta_rotation * direction;
-//         }
-
-//         gizmos.ray(transform.translation, direction * 2.0, Color::FUCHSIA);
-//     }
-// }
-
 // Utilities
 
 fn is_over_max_speed(velocity: Vec3, max_speed: f32) -> bool {
@@ -140,15 +120,18 @@ fn looking_towards(direction: Vec3, up: Vec3) -> Quat {
     Quat::from_mat3(&Mat3::from_cols(right, up, back))
 }
 
+// TODO: refactor to remove duplication
+// TODO: move gizmos to dedicated system
+
 fn calculate_rotation_to_ground_normal(
     gizmos: &mut Gizmos,
     position: Vec3,
     character_rotation: Quat,
     ground_normal: Vec3,
 ) -> Quat {
-    let adjusted_character_rotation =
-        character_rotation;
-    let normal_rotation = looking_towards(ground_normal, character_rotation * Vec3::Z) * Quat::from_axis_angle(Vec3::X, (-90.0 as f32).to_radians());
+    let adjusted_character_rotation = character_rotation;
+    let normal_rotation = looking_towards(ground_normal, character_rotation * Vec3::Z)
+        * Quat::from_axis_angle(Vec3::X, (-90.0 as f32).to_radians());
     let delta_rotation = adjusted_character_rotation.inverse() * normal_rotation;
 
     // Draw ground normal
@@ -175,20 +158,16 @@ fn calculate_rotation_to_ground_normal(
         1.0,
     );
 
-    // Draw thing
-    gizmos.circle(position, character_rotation * delta_rotation * Vec3::Y, 0.6, Color::VIOLET);
+    // Draw resulting orientation (should align with ground normal)
+    gizmos.circle(
+        position,
+        character_rotation * delta_rotation * Vec3::Y,
+        0.6,
+        Color::VIOLET,
+    );
 
     character_rotation * delta_rotation
 }
-
-// fn draw_transform_gizmo(gizmos: &mut Gizmos, transform: &Transform, line_length: f32) {
-//     draw_axis_gizmos(
-//         gizmos,
-//         transform.translation,
-//         transform.rotation,
-//         line_length,
-//     );
-// }
 
 fn draw_axis_gizmos(gizmos: &mut Gizmos, origin: Vec3, rotation: Quat, size: f32) {
     gizmos.ray(origin, rotation * Vec3::X * size, Color::RED);

@@ -35,8 +35,6 @@ impl Plugin for CharacterPlugin {
     }
 }
 
-// TODO: when standing on an object, use it's normal direction to align the characters movement forces
-
 // TODO: add a correcting force that pushes the character velocity to it's move input
 
 /// The main character component, holds state and current inputs.
