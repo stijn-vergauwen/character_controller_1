@@ -37,29 +37,26 @@ fn move_character(
         .iter_mut()
         .filter(|(_, character, _, _, _)| character.is_active)
     {
-        let mut direction = character.movement_input;
+        let ground_rotation = match grounded.ground_normal() {
+            Some(normal) => ground_normal_as_rotation(normal),
+            None => Quat::IDENTITY,
+        };
 
-        // TODO: fix movement input not being aligned with character transform when 'ground_normal()' return none.
-        //       (tranform.rotation * movement_input happens only in ground normal calculations)
+        let input_direction = align_direction_to_ground(
+            ground_rotation,
+            transform.rotation,
+            character.movement_input,
+        );
 
-        if let Some(ground_normal) = grounded.ground_normal() {
-            let delta_rotation = calculate_rotation_to_ground_normal(
-                &mut gizmos,
-                transform.translation,
-                transform.rotation,
-                ground_normal,
-            );
-
-            direction = delta_rotation * direction;
-        }
+        // TODO: split out gizmo drawing
 
         // Draw direction of movement force
-        gizmos.ray(transform.translation, direction * 2.0, Color::FUCHSIA);
+        gizmos.ray(transform.translation, input_direction * 2.0, Color::FUCHSIA);
 
         // TODO: don't write result to force.force, store it in character instead.
 
-        force.force =
-            direction * config.get_movement_strength(grounded.is_grounded(), character.is_running);
+        force.force = input_direction
+            * config.get_movement_strength(grounded.is_grounded(), character.is_running);
     }
 }
 
@@ -120,56 +117,16 @@ fn looking_towards(direction: Vec3, up: Vec3) -> Quat {
     Quat::from_mat3(&Mat3::from_cols(right, up, back))
 }
 
-// TODO: refactor to remove duplication
-// TODO: move gizmos to dedicated system
-
-fn calculate_rotation_to_ground_normal(
-    gizmos: &mut Gizmos,
-    position: Vec3,
-    character_rotation: Quat,
-    ground_normal: Vec3,
-) -> Quat {
-    let normal_rotation = looking_towards(ground_normal, Vec3::Z)
-        * Quat::from_axis_angle(Vec3::X, (-90.0 as f32).to_radians());
-    let delta_rotation = normal_rotation * character_rotation;
-
-    // Draw ground normal
-    draw_axis_gizmos(
-        gizmos,
-        position + Vec3::new(-2.0, 0.5, 0.0),
-        normal_rotation,
-        1.0,
-    );
-
-    // Draw adjusted character rotation
-    draw_axis_gizmos(
-        gizmos,
-        position + Vec3::new(-2.0, 2.0, 0.0),
-        character_rotation,
-        1.0,
-    );
-
-    // Draw delta
-    draw_axis_gizmos(
-        gizmos,
-        position + Vec3::new(-2.0, 3.5, 0.0),
-        delta_rotation,
-        1.0,
-    );
-
-    // Draw resulting orientation (should align with ground normal)
-    gizmos.circle(
-        position,
-        delta_rotation * Vec3::Y,
-        0.55,
-        Color::VIOLET,
-    );
-
-    delta_rotation
+/// Returns the ground normal direction as a quaternion where up is the Y axis.
+fn ground_normal_as_rotation(normal: Vec3) -> Quat {
+    looking_towards(normal, Vec3::Z) * Quat::from_axis_angle(Vec3::X, (-90.0 as f32).to_radians())
 }
 
-fn draw_axis_gizmos(gizmos: &mut Gizmos, origin: Vec3, rotation: Quat, size: f32) {
-    gizmos.ray(origin, rotation * Vec3::X * size, Color::RED);
-    gizmos.ray(origin, rotation * Vec3::Y * size, Color::GREEN);
-    gizmos.ray(origin, rotation * Vec3::Z * size, Color::BLUE);
+/// Returns the direction aligned with the ground and turned to the characters rotation.
+fn align_direction_to_ground(
+    ground_rotation: Quat,
+    character_rotation: Quat,
+    direction: Vec3,
+) -> Vec3 {
+    ground_rotation * character_rotation * direction
 }
