@@ -129,10 +129,9 @@ fn calculate_rotation_to_ground_normal(
     character_rotation: Quat,
     ground_normal: Vec3,
 ) -> Quat {
-    let adjusted_character_rotation = character_rotation;
-    let normal_rotation = looking_towards(ground_normal, character_rotation * Vec3::Z)
+    let normal_rotation = looking_towards(ground_normal, Vec3::Z)
         * Quat::from_axis_angle(Vec3::X, (-90.0 as f32).to_radians());
-    let delta_rotation = adjusted_character_rotation.inverse() * normal_rotation;
+    let delta_rotation = normal_rotation * character_rotation;
 
     // Draw ground normal
     draw_axis_gizmos(
@@ -146,7 +145,7 @@ fn calculate_rotation_to_ground_normal(
     draw_axis_gizmos(
         gizmos,
         position + Vec3::new(-2.0, 2.0, 0.0),
-        adjusted_character_rotation,
+        character_rotation,
         1.0,
     );
 
@@ -161,12 +160,12 @@ fn calculate_rotation_to_ground_normal(
     // Draw resulting orientation (should align with ground normal)
     gizmos.circle(
         position,
-        character_rotation * delta_rotation * Vec3::Y,
-        0.6,
+        delta_rotation * Vec3::Y,
+        0.55,
         Color::VIOLET,
     );
 
-    character_rotation * delta_rotation
+    delta_rotation
 }
 
 fn draw_axis_gizmos(gizmos: &mut Gizmos, origin: Vec3, rotation: Quat, size: f32) {
