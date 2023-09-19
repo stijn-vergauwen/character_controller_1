@@ -35,13 +35,13 @@ fn update_movement_force(
             None => Quat::IDENTITY,
         };
 
-        let input_direction = align_direction_to_ground(
+        let movement_direction = align_direction_to_ground(
             ground_rotation,
             transform.rotation,
             character.movement_input,
         );
 
-        character.movement_force = input_direction
+        character.movement_force = movement_direction
             * config.get_movement_strength(grounded.is_grounded(), character.is_running);
     }
 }
@@ -86,22 +86,23 @@ fn stop_running_if_no_movement_input(mut characters: Query<&mut Character>) {
 // Gizmos
 
 fn draw_gizmos(characters: Query<(&Character, &GlobalTransform, &Velocity)>, mut gizmos: Gizmos) {
+    let position_offset = Vec3::Y * 0.05;
     let current_velocity_color = Color::CYAN;
     let target_velocity_color = Color::FUCHSIA;
-    let length = 2.0;
+    let length = 0.4;
 
     for (character, global_transform, velocity) in characters.iter() {
-        let position = global_transform.translation();
+        let position = global_transform.translation() + position_offset;
 
         gizmos.ray(
             position,
-            velocity.linvel.normalize_or_zero() * length,
+            velocity.linvel * length,
             current_velocity_color,
         );
 
         gizmos.ray(
             position,
-            character.movement_force.normalize_or_zero() * length,
+            character.movement_force * length,
             target_velocity_color,
         );
     }

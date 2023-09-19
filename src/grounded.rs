@@ -94,10 +94,6 @@ fn update_grounded(
 
         grounded.is_grounded = cast_result.is_some();
         grounded.ground_normal = cast_result;
-
-        if let Some(normal) = cast_result {
-            println!("Ground normal: {}", normal);
-        }
     }
 }
 
