@@ -12,7 +12,13 @@ impl Plugin for CharacterMovementPlugin {
         app.add_systems(
             Update,
             (
-                (update_movement_force, move_character, limit_character_speed).chain(),
+                (
+                    update_movement_force,
+                    update_corrective_force,
+                    move_character,
+                    limit_character_speed,
+                )
+                    .chain(),
                 stop_running_if_no_movement_input,
                 draw_gizmos,
             ),
@@ -46,8 +52,23 @@ fn update_movement_force(
     }
 }
 
+fn update_corrective_force(mut characters: Query<(&mut Character, &Velocity, &Grounded)>) {
+    for (mut character, velocity, grounded) in characters
+        .iter_mut()
+        .filter(|(character, _, _)| character.is_active)
+    {
+        character.corrective_force = match grounded.is_grounded() {
+            true => character.movement_force - velocity.linvel,
+            false => Vec3::ZERO,
+        };
+    }
+}
+
 fn move_character(mut characters: Query<(&Character, &mut ExternalForce)>) {
-    for (character, mut force) in characters.iter_mut() {
+    for (character, mut force) in characters
+        .iter_mut()
+        .filter(|(character, _)| character.is_active)
+    {
         force.force = character.movement_force;
     }
 }
@@ -89,21 +110,24 @@ fn draw_gizmos(characters: Query<(&Character, &GlobalTransform, &Velocity)>, mut
     let position_offset = Vec3::Y * 0.05;
     let current_velocity_color = Color::CYAN;
     let target_velocity_color = Color::FUCHSIA;
+    let corrective_force_color = Color::RED;
     let length = 0.4;
 
     for (character, global_transform, velocity) in characters.iter() {
         let position = global_transform.translation() + position_offset;
 
-        gizmos.ray(
-            position,
-            velocity.linvel * length,
-            current_velocity_color,
-        );
+        gizmos.ray(position, velocity.linvel * length, current_velocity_color);
 
         gizmos.ray(
             position,
             character.movement_force * length,
             target_velocity_color,
+        );
+
+        gizmos.ray(
+            position,
+            character.corrective_force * length,
+            corrective_force_color,
         );
     }
 }
