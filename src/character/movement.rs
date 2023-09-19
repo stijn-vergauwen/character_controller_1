@@ -55,26 +55,21 @@ fn update_movement_force(
 
 // TODO: rename corrective force to movement force
 
-fn update_corrective_force(mut characters: Query<(&mut Character, &Velocity, &Grounded)>) {
-    for (mut character, velocity, grounded) in characters
+fn update_corrective_force(
+    mut characters: Query<(&mut Character, &CharacterConfig, &Velocity, &Grounded)>,
+) {
+    for (mut character, config, velocity, grounded) in characters
         .iter_mut()
-        .filter(|(character, _, _)| character.is_active)
+        .filter(|(character, _, _, _)| character.is_active)
     {
+        let delta = character.movement_force - velocity.linvel;
 
-        // TODO: use walk & run strengths for this
-        let strength = 7.0;
-
-        character.corrective_force = match grounded.is_grounded() {
-            true => {
-                let delta = character.movement_force - velocity.linvel;
-                if delta.length() > 0.00001 {
-                    delta.normalize_or_zero() * strength
-                } else {
-                    Vec3::ZERO
-                }
-            },
-            false => Vec3::ZERO,
-        };
+        character.corrective_force = if delta.length() > 0.00001 {
+            delta.normalize_or_zero()
+                * config.get_movement_strength(grounded.is_grounded(), character.is_running)
+        } else {
+            Vec3::ZERO
+        }
     }
 }
 
@@ -149,4 +144,9 @@ fn align_direction_to_ground(
     direction: Vec3,
 ) -> Vec3 {
     ground_rotation * character_rotation * direction
+}
+
+/// Returns the vector with it's Y component set to 0.
+fn vector_without_y(vector: Vec3) -> Vec3 {
+    Vec3::new(vector.x, 0.0, vector.z)
 }
