@@ -12,8 +12,7 @@ impl Plugin for CharacterMovementPlugin {
         app.add_systems(
             Update,
             (
-                move_character,
-                limit_character_speed.after(move_character),
+                (update_movement_force, move_character, limit_character_speed).chain(),
                 stop_running_if_no_movement_input,
                 draw_gizmos,
             ),
@@ -24,18 +23,12 @@ impl Plugin for CharacterMovementPlugin {
 // TODO: disable jump when crouching
 // TODO: Make grounded component optional to work for characters without it
 
-fn move_character(
-    mut characters: Query<(
-        &mut ExternalForce,
-        &Character,
-        &CharacterConfig,
-        &Transform,
-        &Grounded,
-    )>,
+fn update_movement_force(
+    mut characters: Query<(&mut Character, &CharacterConfig, &Transform, &Grounded)>,
 ) {
-    for (mut force, character, config, transform, grounded) in characters
+    for (mut character, config, transform, grounded) in characters
         .iter_mut()
-        .filter(|(_, character, _, _, _)| character.is_active)
+        .filter(|(character, _, _, _)| character.is_active)
     {
         let ground_rotation = match grounded.ground_normal() {
             Some(normal) => ground_normal_as_rotation(normal),
@@ -48,10 +41,14 @@ fn move_character(
             character.movement_input,
         );
 
-        // TODO: don't write result to force.force, store it in character instead.
-
-        force.force = input_direction
+        character.movement_force = input_direction
             * config.get_movement_strength(grounded.is_grounded(), character.is_running);
+    }
+}
+
+fn move_character(mut characters: Query<(&Character, &mut ExternalForce)>) {
+    for (character, mut force) in characters.iter_mut() {
+        force.force = character.movement_force;
     }
 }
 
@@ -90,7 +87,7 @@ fn stop_running_if_no_movement_input(mut characters: Query<&mut Character>) {
 
 fn draw_gizmos(characters: Query<(&Character, &GlobalTransform, &Velocity)>, mut gizmos: Gizmos) {
     let current_velocity_color = Color::CYAN;
-    // let target_velocity_color = Color::FUCHSIA;
+    let target_velocity_color = Color::FUCHSIA;
     let length = 2.0;
 
     for (character, global_transform, velocity) in characters.iter() {
@@ -100,6 +97,12 @@ fn draw_gizmos(characters: Query<(&Character, &GlobalTransform, &Velocity)>, mut
             position,
             velocity.linvel.normalize_or_zero() * length,
             current_velocity_color,
+        );
+
+        gizmos.ray(
+            position,
+            character.movement_force.normalize_or_zero() * length,
+            target_velocity_color,
         );
     }
 }

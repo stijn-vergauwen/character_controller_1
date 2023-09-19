@@ -46,6 +46,8 @@ pub struct Character {
     pub is_running: bool,
     pub movement_input: Vec3,
     pub rotation_input: Vec3,
+    pub movement_force: Vec3,
+    pub corrective_force: Vec3,
 }
 
 impl Character {
@@ -66,6 +68,8 @@ impl Default for Character {
             is_running: false,
             movement_input: Vec3::ZERO,
             rotation_input: Vec3::ZERO,
+            movement_force: Vec3::ZERO,
+            corrective_force: Vec3::ZERO,
         }
     }
 }
