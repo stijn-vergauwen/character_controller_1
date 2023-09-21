@@ -42,10 +42,10 @@ impl Default for CharacterConfig {
     fn default() -> Self {
         Self {
             walk_speed: 4.0,
-            walk_strength: 3.0,
+            walk_strength: 2.5,
             run_speed: 10.0,
             run_strength: 5.0,
-            jump_strength: 3.5,
+            jump_strength: 3.0,
             turn_speed: 0.0007,
             vertical_rotation_limit_degrees: 90.0,
             aerial_multiplier: 0.5,

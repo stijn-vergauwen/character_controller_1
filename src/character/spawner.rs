@@ -89,12 +89,11 @@ impl Default for CharacterSpawnSettings {
         Self {
             spawn_position: Vec3::ZERO,
             color: Color::CYAN,
-            // TODO: changing size doesn't change the body size? fix this
-            size: Vec2::new(0.8, 2.0),
+            size: Vec2::new(0.65, 2.0),
             head_percentage_of_height: 20.0,
             character_name: String::from("Default character"),
-            grounded_height_offset: 0.26,
-            grounded_check_method: CheckMethod::Sphere { radius: 0.3 },
+            grounded_height_offset: 0.15,
+            grounded_check_method: CheckMethod::Sphere { radius: 0.2 },
             draw_grounded_gizmos: false,
             drag: 0.5,
             friction: 0.3,
