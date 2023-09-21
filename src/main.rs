@@ -53,14 +53,10 @@ fn spawn_test_character(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     let spawn_settings = CharacterSpawnSettings::default();
-
-    let character = Character {
-        is_active: true,
-        ..default()
-    };
-
+    let character = Character::default();
     let character_config = CharacterConfig::default();
 
+    // This component is optional, you can also use your own input handling.
     let movement_input = PlayerMovementInput::default();
 
     CharacterSpawner::new(spawn_settings)
