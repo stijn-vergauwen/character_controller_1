@@ -15,8 +15,6 @@ use super::{
             - First person camera
 */
 
-// TODO: replace this one big settings struct with the separate components for grounded, drag, friction.
-// TODO: add a mass property, and set densities of colliders to 0. This makes movement forces more predictable and prevents crouching from messing up strengths
 pub struct CharacterSpawnSettings {
     pub color: Color,
 

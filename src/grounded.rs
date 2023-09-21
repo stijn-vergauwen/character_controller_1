@@ -134,8 +134,6 @@ fn check_ray_hit_normal(
         .and_then(|hit| Some(hit.1.normal))
 }
 
-// TODO: return ground normal directly, maybe use collision point to get normalized delta from center?
-
 fn check_sphere_hit(
     rapier_context: &RapierContext,
     cast_info: &CastInfo,

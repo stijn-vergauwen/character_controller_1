@@ -48,7 +48,6 @@ impl Default for CharacterConfig {
             run_speed: 10.0,
             run_strength: 7.0,
             jump_strength: 3.5,
-            // TODO: make this turn strength value less weird
             turn_speed: 0.0007,
             vertical_rotation_limit_degrees: 90.0,
             aerial_multiplier: 0.5,

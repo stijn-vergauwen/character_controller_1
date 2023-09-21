@@ -49,11 +49,6 @@ fn update_movement_direction(mut characters: Query<(&mut Character, &Transform, 
     }
 }
 
-// TODO: solve these problems:
-// 1. movement speed isn't used
-// 2. strength determines speed
-// 3. I want movement force to be applied seperately but corrective force depends on movement force
-
 fn update_corrective_direction(
     mut characters: Query<(&mut Character, &CharacterConfig, &Velocity, &Grounded)>,
 ) {

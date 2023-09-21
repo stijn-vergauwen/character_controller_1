@@ -11,9 +11,9 @@ impl Plugin for CharacterCrouchPlugin {
     }
 }
 
-// TODO: add config parameters, like start and end height, speed. Remove all magic numbers
-// TODO: Current behaviour doesn't work with physics engine, try keeping the bottom part at the same spot and moving the head down instead, maybe rebuild the head collider so it's position is at transform?
-
+/// Warning! This component doesn't work properly and is in an uncomplete state.
+/// 
+/// Maybe wait for the next iteration to use this :P.
 #[derive(Component)]
 pub struct CharacterCrouch {
     pub has_crouch_input: bool,
@@ -39,7 +39,6 @@ impl CharacterCrouch {
 
 fn update_crouch(mut characters: Query<&mut CharacterCrouch>, time: Res<Time>) {
     for mut crouch in characters.iter_mut() {
-
         let lerp_change_per_second = 6.0;
         let delta_lerp = match crouch.has_crouch_input {
             true => lerp_change_per_second * time.delta_seconds(),
