@@ -44,11 +44,11 @@ impl Default for CharacterConfig {
     fn default() -> Self {
         Self {
             walk_speed: 4.0,
-            walk_strength: 7.0,
+            walk_strength: 5.0,
             run_speed: 10.0,
-            run_strength: 12.0,
+            run_strength: 7.0,
             jump_strength: 3.5,
-            // TODO: make this turn strength value less wierd
+            // TODO: make this turn strength value less weird
             turn_speed: 0.0007,
             vertical_rotation_limit_degrees: 90.0,
             aerial_multiplier: 0.5,

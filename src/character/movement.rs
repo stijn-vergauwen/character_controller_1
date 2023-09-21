@@ -13,8 +13,8 @@ impl Plugin for CharacterMovementPlugin {
             Update,
             (
                 (
-                    update_movement_force,
-                    update_corrective_force,
+                    update_movement_direction,
+                    update_corrective_direction,
                     move_character,
                 )
                     .chain(),
@@ -28,15 +28,12 @@ impl Plugin for CharacterMovementPlugin {
 // TODO: disable jump when crouching
 // TODO: Make grounded component optional to work for characters without it
 
-// TODO: make this the movement target, not the actual force
-
-fn update_movement_force(
-    mut characters: Query<(&mut Character, &CharacterConfig, &Transform, &Grounded)>,
-) {
-    for (mut character, config, transform, grounded) in characters
+fn update_movement_direction(mut characters: Query<(&mut Character, &Transform, &Grounded)>) {
+    for (mut character, transform, grounded) in characters
         .iter_mut()
-        .filter(|(character, _, _, _)| character.is_active)
+        .filter(|(character, _, _)| character.is_active)
     {
+        // TODO: move ground rotation into grounded component
         let ground_rotation = match grounded.ground_normal() {
             Some(normal) => ground_normal_as_rotation(normal),
             None => Quat::IDENTITY,
@@ -48,37 +45,51 @@ fn update_movement_force(
             character.movement_input,
         );
 
-        character.movement_force = movement_direction
-            * config.get_movement_strength(grounded.is_grounded(), character.is_running);
+        character.movement_direction = movement_direction;
     }
 }
 
-// TODO: rename corrective force to movement force
+// TODO: solve these problems:
+// 1. movement speed isn't used
+// 2. strength determines speed
+// 3. I want movement force to be applied seperately but corrective force depends on movement force
 
-fn update_corrective_force(
+fn update_corrective_direction(
     mut characters: Query<(&mut Character, &CharacterConfig, &Velocity, &Grounded)>,
 ) {
     for (mut character, config, velocity, grounded) in characters
         .iter_mut()
         .filter(|(character, _, _, _)| character.is_active)
     {
-        let delta = character.movement_force - velocity.linvel;
+        let treshold = 0.00001;
+        let delta = (character.movement_direction
+            * config.get_movement_speed(character.is_running))
+            - velocity.linvel;
 
-        character.corrective_force = if delta.length() > 0.00001 {
-            delta.normalize_or_zero()
-                * config.get_movement_strength(grounded.is_grounded(), character.is_running)
+        character.corrective_direction = if delta.length() > treshold {
+            match grounded.ground_normal() {
+                Some(normal) => {
+                    ground_normal_as_rotation(normal) * vector_without_y(delta).normalize_or_zero()
+                }
+                None => Vec3::ZERO,
+            }
         } else {
             Vec3::ZERO
         }
     }
 }
 
-fn move_character(mut characters: Query<(&Character, &mut ExternalForce)>) {
-    for (character, mut force) in characters
+fn move_character(
+    mut characters: Query<(&mut ExternalForce, &Character, &CharacterConfig, &Grounded)>,
+) {
+    for (mut force, character, config, grounded) in characters
         .iter_mut()
-        .filter(|(character, _)| character.is_active)
+        .filter(|(_, character, _, _)| character.is_active)
     {
-        force.force = character.corrective_force;
+        let combined_direction = character.movement_direction + character.corrective_direction;
+        let strength = config.get_movement_strength(grounded.is_grounded(), character.is_running);
+
+        force.force = combined_direction * strength;
     }
 }
 
@@ -93,27 +104,38 @@ fn stop_running_if_no_movement_input(mut characters: Query<&mut Character>) {
 
 // Gizmos
 
-fn draw_gizmos(characters: Query<(&Character, &GlobalTransform, &Velocity)>, mut gizmos: Gizmos) {
+fn draw_gizmos(
+    characters: Query<(
+        &Character,
+        &GlobalTransform,
+        &Velocity,
+        &CharacterConfig,
+        &Grounded,
+    )>,
+    mut gizmos: Gizmos,
+) {
     let position_offset = Vec3::Y * 0.05;
     let current_velocity_color = Color::CYAN;
     let target_velocity_color = Color::FUCHSIA;
     let corrective_force_color = Color::RED;
     let length = 0.4;
 
-    for (character, global_transform, velocity) in characters.iter() {
+    for (character, global_transform, velocity, config, grounded) in characters.iter() {
         let position = global_transform.translation() + position_offset;
 
         gizmos.ray(position, velocity.linvel * length, current_velocity_color);
 
         gizmos.ray(
             position,
-            character.movement_force * length,
+            character.movement_direction * length * config.get_movement_speed(character.is_running),
             target_velocity_color,
         );
 
         gizmos.ray(
             position,
-            character.corrective_force * length,
+            character.corrective_direction
+                * length
+                * config.get_movement_strength(grounded.is_grounded(), character.is_running),
             corrective_force_color,
         );
     }
