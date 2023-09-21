@@ -52,7 +52,9 @@ impl Plugin for CharacterPlugin {
 
 /// The main character component, holds state and current inputs.
 ///
-/// NOTE: To spawn a character it is recommended to use the spawner module.
+/// NOTE: To spawn a character it is recommended to use the `CharacterSpawner` helper struct.
+/// 
+/// `is_active` and `draw_movement_gizmos` are the only fields you might want to set manually.
 #[derive(Component, Debug)]
 pub struct Character {
     pub is_active: bool,
@@ -61,6 +63,12 @@ pub struct Character {
     pub rotation_input: Vec3,
     pub movement_direction: Vec3,
     pub corrective_direction: Vec3,
+
+    /// Visualize the movement forces acting on this character.
+    /// 
+    /// * Cyan = the current velocity.
+    /// * Purple = the target velocity.
+    /// * Red = a correcting force to reduce drifting and sliding.
     pub draw_movement_gizmos: bool,
 }
 
@@ -78,7 +86,7 @@ impl Character {
 impl Default for Character {
     fn default() -> Self {
         Self {
-            is_active: false,
+            is_active: true,
             is_running: false,
             movement_input: Vec3::ZERO,
             rotation_input: Vec3::ZERO,

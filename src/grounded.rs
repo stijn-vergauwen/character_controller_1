@@ -27,6 +27,11 @@ pub struct Grounded {
     /// The amount that the height of the cast origin will be offsetted, use to finetune position.
     height_offset: f32,
     check_method: CheckMethod,
+
+    /// Visualize the behaviour of this component.
+    /// 
+    /// * draws the ray or shape that is used to set `is_grounded`.
+    /// * draws the normal direction of the ground if this entity is grounded.
     draw_gizmos: bool,
 }
 
