@@ -89,6 +89,7 @@ impl Default for CharacterSpawnSettings {
         Self {
             spawn_position: Vec3::ZERO,
             color: Color::CYAN,
+            // TODO: changing size doesn't change the body size? fix this
             size: Vec2::new(0.8, 2.0),
             head_percentage_of_height: 20.0,
             character_name: String::from("Default character"),
@@ -144,7 +145,7 @@ impl CharacterSpawner {
 
     /// Spawns the body and head meshes and colliders of the character.
     ///
-    /// Requires the `root_id` to be set, do this with the `spawn_base` function.
+    /// Requires the `root_id` to be set, do this with the `spawn_core` function.
     pub fn add_body(
         &mut self,
         commands: &mut Commands,
@@ -180,7 +181,7 @@ impl CharacterSpawner {
 
     /// Spawns `Grounded` and `CharacterJump` components on the character root entity.
     ///
-    /// Requires the `root_id` to be set, do this with the `spawn_base` function.
+    /// Requires the `root_id` to be set, do this with the `spawn_core` function.
     pub fn add_jumping(&mut self, commands: &mut Commands) -> &mut Self {
         if let Some(root_id) = self.root_id {
             commands.entity(root_id).insert((
@@ -198,6 +199,8 @@ impl CharacterSpawner {
     /// Spawns a default `Camera3dBundle` component as child entity of the character head.
     ///
     /// Requires the `head_id` to be set, do this with the `add_body` function.
+    ///
+    /// You can use the `build_first_person_camera` or `build_third_person_camera` for making the camera component
     pub fn add_camera(&mut self, commands: &mut Commands, component: impl Bundle) -> &mut Self {
         if let Some(head_id) = self.head_id {
             commands.entity(head_id).with_children(|head| {

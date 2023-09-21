@@ -50,13 +50,7 @@ fn spawn_test_character(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let spawn_settings = CharacterSpawnSettings {
-        spawn_position: Vec3::new(0.0, 2.0, 0.0),
-        // grounded_check_method: CheckMethod::Ray { distance: 0.3 },
-        // grounded_height_offset: 0.1,
-        draw_grounded_gizmos: true,
-        ..default()
-    };
+    let spawn_settings = CharacterSpawnSettings { ..default() };
 
     let character = Character {
         is_active: true,

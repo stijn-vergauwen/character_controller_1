@@ -1,7 +1,6 @@
 pub mod camera;
 pub mod config;
 pub mod crouch;
-mod interaction;
 pub mod jump;
 mod movement;
 mod rotation;
@@ -32,6 +31,7 @@ use self::{
         - make alternative to resizing like splitting body in multiple parts and rotating those, which would be more accurate also
     - no magic numbers in crouching code, move these parameters to a config
     - set the character's mass manually and make the collider densities 0, for consistency
+    - add character interaction, didn't have a clear idea of how that would look for now
 */
 
 pub struct CharacterPlugin;
