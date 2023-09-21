@@ -25,14 +25,16 @@ impl Plugin for CharacterMovementPlugin {
     }
 }
 
-// TODO: Make grounded component optional to work for characters without it
+// TODO: Make grounded component optional to work for characters without it <- doing
 
-fn update_movement_direction(mut characters: Query<(&mut Character, &Transform, &Grounded)>) {
+fn update_movement_direction(
+    mut characters: Query<(&mut Character, &Transform, Option<&Grounded>)>,
+) {
     for (mut character, transform, grounded) in characters
         .iter_mut()
         .filter(|(character, _, _)| character.is_active)
     {
-        let ground_rotation = grounded.ground_rotation().unwrap_or(Quat::IDENTITY);
+        let ground_rotation = get_ground_rotation(grounded).unwrap_or(Quat::IDENTITY);
 
         let movement_direction = align_direction_to_ground(
             ground_rotation,
@@ -45,7 +47,12 @@ fn update_movement_direction(mut characters: Query<(&mut Character, &Transform, 
 }
 
 fn update_corrective_direction(
-    mut characters: Query<(&mut Character, &CharacterConfig, &Velocity, &Grounded)>,
+    mut characters: Query<(
+        &mut Character,
+        &CharacterConfig,
+        &Velocity,
+        Option<&Grounded>,
+    )>,
 ) {
     for (mut character, config, velocity, grounded) in characters
         .iter_mut()
@@ -57,10 +64,8 @@ fn update_corrective_direction(
             - velocity.linvel;
 
         character.corrective_direction = if delta.length() > treshold {
-            match grounded.ground_rotation() {
-                Some(rotation) => {
-                    rotation * vector_without_y(delta).normalize_or_zero()
-                }
+            match get_ground_rotation(grounded) {
+                Some(rotation) => rotation * vector_without_y(delta).normalize_or_zero(),
                 None => Vec3::ZERO,
             }
         } else {
@@ -70,14 +75,23 @@ fn update_corrective_direction(
 }
 
 fn move_character(
-    mut characters: Query<(&mut ExternalForce, &Character, &CharacterConfig, &Grounded)>,
+    mut characters: Query<(
+        &mut ExternalForce,
+        &Character,
+        &CharacterConfig,
+        Option<&Grounded>,
+    )>,
 ) {
     for (mut force, character, config, grounded) in characters
         .iter_mut()
         .filter(|(_, character, _, _)| character.is_active)
     {
         let combined_direction = character.movement_direction + character.corrective_direction;
-        let strength = config.get_movement_strength(grounded.is_grounded(), character.is_running);
+        let is_grounded = match grounded {
+            Some(grounded) => grounded.is_grounded(),
+            None => true,
+        };
+        let strength = config.get_movement_strength(is_grounded, character.is_running);
 
         force.force = combined_direction * strength;
     }
@@ -100,7 +114,7 @@ fn draw_gizmos(
         &GlobalTransform,
         &Velocity,
         &CharacterConfig,
-        &Grounded,
+        Option<&Grounded>,
     )>,
     mut gizmos: Gizmos,
 ) {
@@ -112,12 +126,17 @@ fn draw_gizmos(
 
     for (character, global_transform, velocity, config, grounded) in characters.iter() {
         let position = global_transform.translation() + position_offset;
+        let is_running = character.is_running;
+        let is_grounded = match grounded {
+            Some(grounded) => grounded.is_grounded(),
+            None => true,
+        };
 
         gizmos.ray(position, velocity.linvel * length, current_velocity_color);
 
         gizmos.ray(
             position,
-            character.movement_direction * length * config.get_movement_speed(character.is_running),
+            character.movement_direction * length * config.get_movement_speed(is_running),
             target_velocity_color,
         );
 
@@ -125,7 +144,7 @@ fn draw_gizmos(
             position,
             character.corrective_direction
                 * length
-                * config.get_movement_strength(grounded.is_grounded(), character.is_running),
+                * config.get_movement_strength(is_grounded, is_running),
             corrective_force_color,
         );
     }
@@ -145,4 +164,8 @@ fn align_direction_to_ground(
 /// Returns the vector with it's Y component set to 0.
 fn vector_without_y(vector: Vec3) -> Vec3 {
     Vec3::new(vector.x, 0.0, vector.z)
+}
+
+fn get_ground_rotation(grounded: Option<&Grounded>) -> Option<Quat> {
+    grounded?.ground_rotation()
 }
