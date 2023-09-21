@@ -25,7 +25,6 @@ impl Plugin for CharacterMovementPlugin {
     }
 }
 
-// TODO: disable jump when crouching
 // TODO: Make grounded component optional to work for characters without it
 
 fn update_movement_direction(mut characters: Query<(&mut Character, &Transform, &Grounded)>) {
@@ -33,11 +32,7 @@ fn update_movement_direction(mut characters: Query<(&mut Character, &Transform, 
         .iter_mut()
         .filter(|(character, _, _)| character.is_active)
     {
-        // TODO: move ground rotation into grounded component
-        let ground_rotation = match grounded.ground_normal() {
-            Some(normal) => ground_normal_as_rotation(normal),
-            None => Quat::IDENTITY,
-        };
+        let ground_rotation = grounded.ground_rotation().unwrap_or(Quat::IDENTITY);
 
         let movement_direction = align_direction_to_ground(
             ground_rotation,
@@ -62,9 +57,9 @@ fn update_corrective_direction(
             - velocity.linvel;
 
         character.corrective_direction = if delta.length() > treshold {
-            match grounded.ground_normal() {
-                Some(normal) => {
-                    ground_normal_as_rotation(normal) * vector_without_y(delta).normalize_or_zero()
+            match grounded.ground_rotation() {
+                Some(rotation) => {
+                    rotation * vector_without_y(delta).normalize_or_zero()
                 }
                 None => Vec3::ZERO,
             }
@@ -137,22 +132,6 @@ fn draw_gizmos(
 }
 
 // Utilities
-
-fn looking_towards(direction: Vec3, up: Vec3) -> Quat {
-    let back = -direction.try_normalize().unwrap_or(Vec3::NEG_Z);
-    let up = up.try_normalize().unwrap_or(Vec3::Y);
-    let right = up
-        .cross(back)
-        .try_normalize()
-        .unwrap_or_else(|| up.any_orthonormal_vector());
-    let up = back.cross(right);
-    Quat::from_mat3(&Mat3::from_cols(right, up, back))
-}
-
-/// Returns the ground normal direction as a quaternion where up is the Y axis.
-fn ground_normal_as_rotation(normal: Vec3) -> Quat {
-    looking_towards(normal, Vec3::Z) * Quat::from_axis_angle(Vec3::X, (-90.0 as f32).to_radians())
-}
 
 /// Returns the direction aligned with the ground and turned to the characters rotation.
 fn align_direction_to_ground(

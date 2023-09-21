@@ -48,6 +48,10 @@ impl Grounded {
     pub fn ground_normal(&self) -> Option<Vec3> {
         self.ground_normal
     }
+
+    pub fn ground_rotation(&self) -> Option<Quat> {
+        Some(ground_normal_as_rotation(self.ground_normal?))
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -197,4 +201,22 @@ fn draw_ground_normal_gizmos(
             gizmos.ray(position, normal * 3.0, Color::LIME_GREEN);
         }
     }
+}
+
+// Utilities
+
+fn looking_towards(direction: Vec3, up: Vec3) -> Quat {
+    let back = -direction.try_normalize().unwrap_or(Vec3::NEG_Z);
+    let up = up.try_normalize().unwrap_or(Vec3::Y);
+    let right = up
+        .cross(back)
+        .try_normalize()
+        .unwrap_or_else(|| up.any_orthonormal_vector());
+    let up = back.cross(right);
+    Quat::from_mat3(&Mat3::from_cols(right, up, back))
+}
+
+/// Returns the ground normal direction as a quaternion where up is the Y axis.
+fn ground_normal_as_rotation(normal: Vec3) -> Quat {
+    looking_towards(normal, Vec3::Z) * Quat::from_axis_angle(Vec3::X, (-90.0 as f32).to_radians())
 }

@@ -1,7 +1,5 @@
 use bevy::prelude::*;
 
-// TODO: add crouch speed and strength
-
 #[derive(Component)]
 pub struct CharacterConfig {
     pub walk_speed: f32,
