@@ -52,29 +52,22 @@ fn spawn_test_character(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let spawn_settings = CharacterSpawnSettings {
-        draw_grounded_gizmos: true,
-        ..default()
-    };
+    let spawn_settings = CharacterSpawnSettings::default();
 
     let character = Character {
         is_active: true,
         ..default()
     };
 
-    let character_config = CharacterConfig { ..default() };
+    let character_config = CharacterConfig::default();
+
+    let movement_input = PlayerMovementInput::default();
 
     CharacterSpawner::new(spawn_settings)
         .spawn_core(&mut commands, character, character_config)
         .add_body(&mut commands, &mut meshes, &mut materials)
         .add_jumping(&mut commands)
-        .add_camera(&mut commands, build_first_person_camera())
-        // .add_camera(&mut commands, build_third_person_camera(7.0))
-        .add_root_component(
-            &mut commands,
-            PlayerMovementInput {
-                hold_to_run: true,
-                ..default()
-            },
-        );
+        // .add_camera(&mut commands, build_first_person_camera())
+        .add_camera(&mut commands, build_third_person_camera(7.0))
+        .add_root_component(&mut commands, movement_input);
 }
