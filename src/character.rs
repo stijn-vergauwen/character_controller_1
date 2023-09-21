@@ -61,6 +61,7 @@ pub struct Character {
     pub rotation_input: Vec3,
     pub movement_direction: Vec3,
     pub corrective_direction: Vec3,
+    pub draw_movement_gizmos: bool,
 }
 
 impl Character {
@@ -83,6 +84,7 @@ impl Default for Character {
             rotation_input: Vec3::ZERO,
             movement_direction: Vec3::ZERO,
             corrective_direction: Vec3::ZERO,
+            draw_movement_gizmos: false,
         }
     }
 }

@@ -25,8 +25,6 @@ impl Plugin for CharacterMovementPlugin {
     }
 }
 
-// TODO: Make grounded component optional to work for characters without it <- doing
-
 fn update_movement_direction(
     mut characters: Query<(&mut Character, &Transform, Option<&Grounded>)>,
 ) {
@@ -63,8 +61,6 @@ fn update_corrective_direction(
             * config.get_movement_speed(character.is_running))
             - velocity.linvel;
 
-        // let ground_rotation = get_ground_rotation(grounded).unwrap_or(Quat::IDENTITY);
-
         character.corrective_direction = if delta.length() > treshold {
             match grounded {
                 Some(grounded) => match grounded.ground_rotation() {
@@ -98,8 +94,6 @@ fn move_character(
         };
         let strength = config.get_movement_strength(is_grounded, character.is_running);
 
-        println!("Move strength: {}", strength);
-
         force.force = combined_direction * strength;
     }
 }
@@ -131,7 +125,10 @@ fn draw_gizmos(
     let corrective_force_color = Color::RED;
     let length = 0.4;
 
-    for (character, global_transform, velocity, config, grounded) in characters.iter() {
+    for (character, global_transform, velocity, config, grounded) in characters
+        .iter()
+        .filter(|(character, _, _, _, _)| character.draw_movement_gizmos)
+    {
         let position = global_transform.translation() + position_offset;
         let is_running = character.is_running;
         let is_grounded = match grounded {

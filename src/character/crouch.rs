@@ -47,11 +47,6 @@ fn update_crouch(mut characters: Query<&mut CharacterCrouch>, time: Res<Time>) {
 
         crouch.lerp_value = (crouch.lerp_value + delta_lerp).clamp(0.0, 1.0);
         crouch.crouching = crouch.lerp_value > 0.0;
-
-        // println!(
-        //     "Crouching {}%",
-        //     crouch.lerp_value * 100.0
-        // );
     }
 }
 
@@ -72,7 +67,6 @@ fn update_body_height(
 
             if current_y != target_y {
                 transform.translation.y = target_y;
-                // println!("Height: {}", transform.translation.y);
 
                 if let Some(mesh) = meshes.get_mut(mesh_handle) {
                     *mesh = shape::Capsule {
