@@ -23,15 +23,18 @@ use self::{
 
     Things for the next iteration:
 
-    - prevent sliding when idle on a slope. either snap transform back to prev position or try putting the rigidbody to sleep
-    - when the grounded check casts a shape, use that shape collision to get the normal directly, the current system causes the character to get stuck a bit on the edge of a slope
     - use newtypes to make data more descriptive, e.g. "turn speed" has a very weird value
-    - use a different system for crouching, either:
-        - resize the collider downwards so character stays grounded
-        - make alternative to resizing like splitting body in multiple parts and rotating those, which would be more accurate also
-    - no magic numbers in crouching code, move these parameters to a config
     - set the character's mass manually and make the collider densities 0, for consistency
     - add character interaction, didn't have a clear idea of how that would look for now
+    - grounded & jump components:
+        - don't make grounded component optional, if the functionality already works why would you not just always use it?
+        - prevent sliding when idle on a slope. either snap transform back to prev position or try putting the rigidbody to sleep
+        - when the grounded check casts a shape, use that shape collision to get the normal directly, the current system causes the character to get stuck a bit on the edge of a slope
+    - crouching component:
+        - use a different system for crouching, either:
+            - resize the collider downwards so character stays grounded
+            - make alternative to resizing like splitting body in multiple parts and rotating those, which would be more accurate also
+        - no magic numbers in crouching code, move these parameters to a config
 */
 
 pub struct CharacterPlugin;

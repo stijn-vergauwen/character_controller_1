@@ -63,10 +63,15 @@ fn update_corrective_direction(
             * config.get_movement_speed(character.is_running))
             - velocity.linvel;
 
+        // let ground_rotation = get_ground_rotation(grounded).unwrap_or(Quat::IDENTITY);
+
         character.corrective_direction = if delta.length() > treshold {
-            match get_ground_rotation(grounded) {
-                Some(rotation) => rotation * vector_without_y(delta).normalize_or_zero(),
-                None => Vec3::ZERO,
+            match grounded {
+                Some(grounded) => match grounded.ground_rotation() {
+                    Some(rotation) => rotation * vector_without_y(delta).normalize_or_zero(),
+                    None => Vec3::ZERO,
+                },
+                None => vector_without_y(delta).normalize_or_zero(),
             }
         } else {
             Vec3::ZERO
@@ -92,6 +97,8 @@ fn move_character(
             None => true,
         };
         let strength = config.get_movement_strength(is_grounded, character.is_running);
+
+        println!("Move strength: {}", strength);
 
         force.force = combined_direction * strength;
     }
