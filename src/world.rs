@@ -2,7 +2,6 @@ use std::f32::consts::PI;
 
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
-use rand::{thread_rng, Rng};
 
 pub struct WorldPlugin;
 
@@ -67,7 +66,6 @@ fn spawn_cubes(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     let base_position = Vec3::new(2.0, 4.0, -20.0);
-    let max_offset = Vec3::new(10.0, 1.0, 10.0);
     let spawn_count = 20;
     let size = 1.2;
 
@@ -75,8 +73,8 @@ fn spawn_cubes(
     let material_handle = build_material(&mut materials, Color::YELLOW);
 
     for i in 0..spawn_count {
-        let position_offset = random_vec3() * max_offset;
-        let spawn_position = base_position + position_offset + Vec3::Y * i as f32;
+        let position_offset = Vec3::X * (i as f32).sin() * 3.0;
+        let spawn_position = base_position + position_offset + (Vec3::Y * i as f32);
 
         commands.spawn((
             Name::from(format!("Piled physics cube {}", i + 1)),
@@ -161,15 +159,6 @@ fn spawn_sphere(
         },
         Collider::ball(radius),
     ));
-}
-
-fn random_vec3() -> Vec3 {
-    let mut rng = thread_rng();
-    Vec3 {
-        x: rng.gen(),
-        y: rng.gen(),
-        z: rng.gen(),
-    }
 }
 
 fn build_cube_mesh(meshes: &mut ResMut<Assets<Mesh>>, size: f32) -> Handle<Mesh> {
