@@ -12,12 +12,12 @@ impl Plugin for CharacterCrouchPlugin {
 }
 
 /// Warning! This component doesn't work properly and is in an uncomplete state.
-/// 
+///
 /// - Messes with the body size
 /// - Doesn't work well with grounded component
 /// - Looks weird
 /// - Changes the character mass, which changes the strength of movement forces
-/// 
+///
 /// Maybe wait for the next iteration to use this :P.
 #[derive(Component)]
 pub struct CharacterCrouch {
@@ -74,12 +74,7 @@ fn update_body_height(
                 transform.translation.y = target_y;
 
                 if let Some(mesh) = meshes.get_mut(mesh_handle) {
-                    *mesh = shape::Capsule {
-                        depth: target_body_height,
-                        radius: 0.4,
-                        ..default()
-                    }
-                    .into();
+                    *mesh = Capsule3d::new(0.4, target_body_height).into();
                 }
 
                 if let Some(mut capsule) = collider.as_capsule_mut() {

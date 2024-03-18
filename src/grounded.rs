@@ -23,13 +23,13 @@ impl Plugin for GroundedPlugin {
 pub struct Grounded {
     is_grounded: bool,
     /// The normal direction of the ground if grounded, or none.
-    ground_normal: Option<Vec3>,
+    ground_normal: Option<Direction3d>,
     /// The amount that the height of the cast origin will be offsetted, use to finetune position.
     height_offset: f32,
     check_method: CheckMethod,
 
     /// Visualize the behaviour of this component.
-    /// 
+    ///
     /// * draws the ray or shape that is used to set `is_grounded`.
     /// * draws the normal direction of the ground if this entity is grounded.
     draw_gizmos: bool,
@@ -50,7 +50,7 @@ impl Grounded {
         self.is_grounded
     }
 
-    pub fn ground_normal(&self) -> Option<Vec3> {
+    pub fn ground_normal(&self) -> Option<Direction3d> {
         self.ground_normal
     }
 
@@ -102,7 +102,7 @@ fn update_grounded(
         let cast_result = get_normal_from_cast(&rapier_context, &cast_info, filter);
 
         grounded.is_grounded = cast_result.is_some();
-        grounded.ground_normal = cast_result;
+        grounded.ground_normal = cast_result.and_then(|result| result.try_into().ok());
     }
 }
 
@@ -156,6 +156,7 @@ fn check_sphere_hit(
             cast_info.direction,
             &Collider::ball(radius),
             0.0,
+            true,
             filter,
         )
         .is_some()
@@ -222,6 +223,7 @@ fn looking_towards(direction: Vec3, up: Vec3) -> Quat {
 }
 
 /// Returns the ground normal direction as a quaternion where up is the Y axis.
-fn ground_normal_as_rotation(normal: Vec3) -> Quat {
-    looking_towards(normal, Vec3::Z) * Quat::from_axis_angle(Vec3::X, (-90.0 as f32).to_radians())
+fn ground_normal_as_rotation(normal: Direction3d) -> Quat {
+    looking_towards(normal.into(), Vec3::Z)
+        * Quat::from_axis_angle(Vec3::X, (-90.0 as f32).to_radians())
 }

@@ -269,14 +269,10 @@ fn build_character_body(
 ) -> (PbrBundle, Collider, Friction, CharacterBody) {
     (
         PbrBundle {
-            mesh: meshes.add(
-                shape::Capsule {
-                    depth: spawn_settings.straight_height(),
-                    radius: spawn_settings.radius(),
-                    ..default()
-                }
-                .into(),
-            ),
+            mesh: meshes.add(Capsule3d::new(
+                spawn_settings.radius(),
+                spawn_settings.straight_height(),
+            )),
             material: material_handle,
             transform: Transform::from_xyz(0.0, spawn_settings.half_body_height(), 0.0),
             ..default()
@@ -298,7 +294,7 @@ fn build_character_head(
     let head_size = spawn_settings.head_height();
     (
         PbrBundle {
-            mesh: meshes.add(shape::Cube::new(head_size).into()),
+            mesh: meshes.add(Cuboid::from_size(Vec3::splat(head_size))),
             material: material_handle,
             transform: Transform::from_xyz(
                 0.0,

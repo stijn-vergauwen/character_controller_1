@@ -52,10 +52,10 @@ pub struct MovementKeybinds {
 impl Default for MovementKeybinds {
     fn default() -> Self {
         Self {
-            forward_key: KeyCode::W,
-            back_key: KeyCode::S,
-            left_key: KeyCode::A,
-            right_key: KeyCode::D,
+            forward_key: KeyCode::KeyW,
+            back_key: KeyCode::KeyS,
+            left_key: KeyCode::KeyA,
+            right_key: KeyCode::KeyD,
             run_key: KeyCode::ShiftLeft,
             jump_key: KeyCode::Space,
             crouch_key: KeyCode::ControlLeft,
@@ -65,7 +65,7 @@ impl Default for MovementKeybinds {
 
 fn update_character_movement_input(
     mut characters: Query<(&PlayerMovementInput, &mut Character)>,
-    input: Res<Input<KeyCode>>,
+    input: Res<ButtonInput<KeyCode>>,
 ) {
     for (movement, mut character) in characters.iter_mut() {
         let direction = walk_direction_from_input(&movement.keybinds, &input);
@@ -79,7 +79,7 @@ fn update_character_rotation_input(
     mut mouse_motion: EventReader<MouseMotion>,
 ) {
     let sum = mouse_motion
-        .iter()
+        .read()
         .fold(Vec2::ZERO, |sum, motion| sum + motion.delta);
 
     let as_rotation = Vec3::new(-sum.y, -sum.x, 0.0);
@@ -91,7 +91,7 @@ fn update_character_rotation_input(
 
 fn update_character_running(
     mut characters: Query<(&PlayerMovementInput, &mut Character)>,
-    input: Res<Input<KeyCode>>,
+    input: Res<ButtonInput<KeyCode>>,
 ) {
     for (movement, mut character) in characters.iter_mut() {
         if movement.hold_to_run {
@@ -108,7 +108,7 @@ fn update_character_running(
 
 fn update_character_jump_input(
     mut characters: Query<(&PlayerMovementInput, &mut CharacterJump, &Grounded)>,
-    input: Res<Input<KeyCode>>,
+    input: Res<ButtonInput<KeyCode>>,
 ) {
     for (movement, mut jump, grounded) in characters.iter_mut() {
         if input.just_pressed(movement.keybinds.jump_key) && grounded.is_grounded() {
@@ -119,7 +119,7 @@ fn update_character_jump_input(
 
 fn update_character_crouch_input(
     mut characters: Query<(&PlayerMovementInput, &mut CharacterCrouch)>,
-    input: Res<Input<KeyCode>>,
+    input: Res<ButtonInput<KeyCode>>,
 ) {
     for (movement, mut crouch) in characters.iter_mut() {
         if movement.hold_to_crouch {
@@ -134,7 +134,10 @@ fn update_character_crouch_input(
     }
 }
 
-fn walk_direction_from_input(keybinds: &MovementKeybinds, input: &Res<Input<KeyCode>>) -> Vec3 {
+fn walk_direction_from_input(
+    keybinds: &MovementKeybinds,
+    input: &Res<ButtonInput<KeyCode>>,
+) -> Vec3 {
     let mut direction = Vec3::ZERO;
 
     if input.pressed(keybinds.forward_key) {

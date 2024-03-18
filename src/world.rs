@@ -30,7 +30,7 @@ fn spawn_static_objects(
         Name::from("Ground plane"),
         Collider::cuboid(100.0, 0.1, 100.0),
         PbrBundle {
-            mesh: meshes.add(shape::Box::new(200.0, 0.2, 200.0).into()),
+            mesh: meshes.add(Cuboid::new(200.0, 0.2, 200.0)),
             material: materials.add(StandardMaterial {
                 base_color: Color::GRAY,
                 ..default()
@@ -162,21 +162,15 @@ fn spawn_sphere(
 }
 
 fn build_cube_mesh(meshes: &mut ResMut<Assets<Mesh>>, size: f32) -> Handle<Mesh> {
-    meshes.add(shape::Cube::new(size).into())
+    meshes.add(Cuboid::from_size(Vec3::splat(size)))
 }
 
 fn build_rectangle_mesh(meshes: &mut ResMut<Assets<Mesh>>, size: Vec3) -> Handle<Mesh> {
-    meshes.add(shape::Box::new(size.x, size.y, size.z).into())
+    meshes.add(Cuboid::from_size(size))
 }
 
 fn build_sphere_mesh(meshes: &mut ResMut<Assets<Mesh>>, radius: f32) -> Handle<Mesh> {
-    meshes.add(
-        shape::UVSphere {
-            radius,
-            ..default()
-        }
-        .into(),
-    )
+    meshes.add(Sphere::new(radius))
 }
 
 fn build_material(
