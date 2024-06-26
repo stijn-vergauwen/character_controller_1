@@ -150,13 +150,10 @@ fn check_sphere_hit(
     filter: QueryFilter,
 ) -> bool {
     rapier_context
-        .cast_shape(
+        .intersection_with_shape(
             cast_info.origin,
             Quat::IDENTITY,
-            cast_info.direction,
             &Collider::ball(radius),
-            0.0,
-            true,
             filter,
         )
         .is_some()
